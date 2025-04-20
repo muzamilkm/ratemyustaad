@@ -64,7 +64,7 @@ class Teacher {
     bool? isVerified,
   }) {
     return Teacher(
-      id: this.id,
+      id: id,
       name: name ?? this.name,
       department: department ?? this.department,
       institution: institution ?? this.institution,

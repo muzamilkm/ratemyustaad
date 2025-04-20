@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "128410338756",
+    "project_id": "rate-my-ustaad",
+    "storage_bucket": "rate-my-ustaad.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:128410338756:android:6e1ffc527687a0e61b9091",
+        "android_client_info": {
+          "package_name": "com.example.ratemyustaad"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDMfrz0BPgbFVx_zI6fESlv6bGxxhlSjp8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
