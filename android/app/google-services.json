@@ -12,7 +12,12 @@
           "package_name": "com.example.ratemyustaad"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "128410338756-99ea9lttdc55bqvglb42eic9fjj6qol1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDMfrz0BPgbFVx_zI6fESlv6bGxxhlSjp8"
@@ -20,7 +25,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "128410338756-99ea9lttdc55bqvglb42eic9fjj6qol1.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "128410338756-qfrqg4lb4ta1eh0594jamtj0vhe61p7c.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.ratemyustaad"
+              }
+            }
+          ]
         }
       }
     }

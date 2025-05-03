@@ -64,6 +64,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '128410338756',
     projectId: 'rate-my-ustaad',
     storageBucket: 'rate-my-ustaad.firebasestorage.app',
+    iosClientId: '128410338756-qfrqg4lb4ta1eh0594jamtj0vhe61p7c.apps.googleusercontent.com',
     iosBundleId: 'com.example.ratemyustaad',
   );
 
