@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -21,8 +23,16 @@ class _SplashScreenState extends State<SplashScreen> {
       // Restore system UI
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
           overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom]);
-      // Navigate to home screen
-      Navigator.pushReplacementNamed(context, '/home');
+      
+      // Check authentication state and navigate accordingly
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      if (authProvider.isAuthenticated) {
+        // Navigate to home screen if user is logged in
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        // Navigate to landing page if user is not logged in
+        Navigator.pushReplacementNamed(context, '/landing');
+      }
     });
   }
 

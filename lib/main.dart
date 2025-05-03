@@ -5,6 +5,9 @@ import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/splash/splash_screen.dart';
+import 'screens/auth/landing_page.dart';
+import 'screens/auth/email_login_screen.dart';
+import 'screens/auth/email_signup_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,10 +34,13 @@ class RateMyUstaadApp extends StatelessWidget {
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF5E17EB)),
           useMaterial3: true,
-          fontFamily: 'Poppins',
+          fontFamily: 'Manrope',
         ),
         home: const SplashScreen(),
         routes: {
+          '/landing': (context) => const LandingPage(),
+          '/login': (context) => const EmailLoginScreen(),
+          '/signup': (context) => const EmailSignupScreen(),
           '/home': (context) => const HomeScreen(),
         },
         debugShowCheckedModeBanner: false,
