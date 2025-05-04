@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import 'package:flutter/services.dart';
+import '../../utils/onboarding_helper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class EmailSignupScreen extends StatefulWidget {
   const EmailSignupScreen({super.key});
@@ -31,7 +33,8 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F8FF), // Light blue background from CSS
+      backgroundColor:
+          const Color(0xFFF0F8FF), // Light blue background from CSS
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -63,7 +66,7 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                       ),
                     ),
                   ),
-                  
+
                   // Step indicator text
                   Align(
                     alignment: Alignment.centerRight,
@@ -81,7 +84,7 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                       ),
                     ),
                   ),
-                  
+
                   // Heading
                   const SizedBox(height: 24),
                   const Text(
@@ -94,7 +97,7 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                       color: Color(0xFF01242D),
                     ),
                   ),
-                  
+
                   // Subheading
                   const SizedBox(height: 8),
                   const Text(
@@ -107,10 +110,10 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                       color: Color(0xFF708090),
                     ),
                   ),
-                  
+
                   // Form fields
                   const SizedBox(height: 24),
-                  
+
                   // Email field
                   const Text(
                     "Email address",
@@ -142,7 +145,8 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                           letterSpacing: -0.03,
                           color: Color(0xFF708090),
                         ),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         border: InputBorder.none,
                         isDense: true,
                       ),
@@ -162,7 +166,7 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                       },
                     ),
                   ),
-                  
+
                   // Password field
                   const SizedBox(height: 20),
                   const Text(
@@ -195,7 +199,8 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                           letterSpacing: -0.03,
                           color: Color(0xFF708090),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
                         border: InputBorder.none,
                         isDense: true,
                         suffixIcon: GestureDetector(
@@ -207,7 +212,9 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                           child: Padding(
                             padding: const EdgeInsets.all(13.0),
                             child: Icon(
-                              _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                              _obscurePassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
                               color: const Color(0xFF708090),
                               size: 18,
                             ),
@@ -234,7 +241,7 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                       },
                     ),
                   ),
-                  
+
                   // Confirm Password field
                   const SizedBox(height: 20),
                   const Text(
@@ -267,19 +274,23 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                           letterSpacing: -0.03,
                           color: Color(0xFF708090),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
                         border: InputBorder.none,
                         isDense: true,
                         suffixIcon: GestureDetector(
                           onTap: () {
                             setState(() {
-                              _obscureConfirmPassword = !_obscureConfirmPassword;
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword;
                             });
                           },
                           child: Padding(
                             padding: const EdgeInsets.all(13.0),
                             child: Icon(
-                              _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                              _obscureConfirmPassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
                               color: const Color(0xFF708090),
                               size: 18,
                             ),
@@ -306,7 +317,7 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                       },
                     ),
                   ),
-                  
+
                   // Sign Up button
                   const SizedBox(height: 24),
                   Consumer<AuthProvider>(
@@ -339,7 +350,8 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                               ],
                             ),
                             child: ElevatedButton(
-                              onPressed: (authProvider.isLoading || _isCreatingAccount)
+                              onPressed: (authProvider.isLoading ||
+                                      _isCreatingAccount)
                                   ? null
                                   : () async {
                                       if (_formKey.currentState!.validate()) {
@@ -347,11 +359,12 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                                         setState(() {
                                           _isCreatingAccount = true;
                                         });
-                                        
+
                                         // Hide keyboard
                                         FocusScope.of(context).unfocus();
-                                        
-                                        final success = await authProvider.createAccount(
+
+                                        final success =
+                                            await authProvider.createAccount(
                                           _emailController.text.trim(),
                                           _passwordController.text,
                                         );
@@ -364,16 +377,32 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                                         }
 
                                         if (success && context.mounted) {
-                                          // Show success message
-                                          ScaffoldMessenger.of(context).showSnackBar(
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
                                             const SnackBar(
-                                              content: Text('Account created successfully!'),
+                                              content: Text(
+                                                  'Account created successfully!'),
                                               backgroundColor: Colors.green,
                                             ),
                                           );
-                                          
-                                          // Navigate to home
-                                          Navigator.of(context).pushReplacementNamed('/home');
+
+                                          // Clear onboarding flag for new users
+                                          final prefs = await SharedPreferences
+                                              .getInstance();
+                                          await prefs.remove(
+                                              OnboardingHelper.onboardingKey);
+
+                                          final completed =
+                                              await OnboardingHelper
+                                                  .isOnboardingCompleted();
+                                          if (!completed) {
+                                            Navigator.of(context)
+                                                .pushReplacementNamed(
+                                                    '/onboarding');
+                                          } else {
+                                            Navigator.of(context)
+                                                .pushReplacementNamed('/home');
+                                          }
                                         }
                                       }
                                     },
@@ -384,21 +413,35 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
-                              child: (authProvider.isLoading || _isCreatingAccount)
-                                  ? Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: CircularProgressIndicator(
-                                            color: Colors.white,
-                                            strokeWidth: 2.5,
-                                          ),
-                                        ),
-                                        SizedBox(width: 12),
-                                        Text(
-                                          "Creating Account",
+                              child:
+                                  (authProvider.isLoading || _isCreatingAccount)
+                                      ? Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: CircularProgressIndicator(
+                                                color: Colors.white,
+                                                strokeWidth: 2.5,
+                                              ),
+                                            ),
+                                            SizedBox(width: 12),
+                                            Text(
+                                              "Creating Account",
+                                              style: TextStyle(
+                                                fontFamily: 'Manrope',
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w500,
+                                                letterSpacing: -0.04,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      : const Text(
+                                          "Sign up",
                                           style: TextStyle(
                                             fontFamily: 'Manrope',
                                             fontSize: 18,
@@ -407,25 +450,13 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                                             color: Colors.white,
                                           ),
                                         ),
-                                      ],
-                                    )
-                                  : const Text(
-                                      "Sign up",
-                                      style: TextStyle(
-                                        fontFamily: 'Manrope',
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w500,
-                                        letterSpacing: -0.04,
-                                        color: Colors.white,
-                                      ),
-                                    ),
                             ),
                           ),
                         ],
                       );
                     },
                   ),
-                  
+
                   // Terms and conditions text
                   const SizedBox(height: 16),
                   const Center(
@@ -441,7 +472,7 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                       ),
                     ),
                   ),
-                  
+
                   // OR divider
                   const SizedBox(height: 24),
                   Row(
@@ -473,7 +504,7 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                       ),
                     ],
                   ),
-                  
+
                   // Google sign up button
                   const SizedBox(height: 24),
                   Container(
@@ -495,11 +526,12 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                         setState(() {
                           _isCreatingAccount = true;
                         });
-                        
+
                         try {
-                          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                          final authProvider =
+                              Provider.of<AuthProvider>(context, listen: false);
                           final success = await authProvider.signInWithGoogle();
-                          
+
                           if (success && mounted) {
                             // Navigate to home screen on success
                             Navigator.of(context).pushReplacementNamed('/home');
@@ -514,11 +546,12 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                             setState(() {
                               _isCreatingAccount = false;
                             });
-                            
+
                             // Show error message
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Google sign-in failed: ${e.toString()}'),
+                                content: Text(
+                                    'Google sign-in failed: ${e.toString()}'),
                                 backgroundColor: Colors.red,
                               ),
                             );
@@ -561,10 +594,12 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                                           child: Column(
                                             children: [
                                               Expanded(
-                                                child: Container(color: Color(0xFF4285F4)),
+                                                child: Container(
+                                                    color: Color(0xFF4285F4)),
                                               ),
                                               Expanded(
-                                                child: Container(color: Color(0xFF34A853)),
+                                                child: Container(
+                                                    color: Color(0xFF34A853)),
                                               ),
                                             ],
                                           ),
@@ -573,10 +608,12 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                                           child: Column(
                                             children: [
                                               Expanded(
-                                                child: Container(color: Color(0xFFEA4335)),
+                                                child: Container(
+                                                    color: Color(0xFFEA4335)),
                                               ),
                                               Expanded(
-                                                child: Container(color: Color(0xFFFBBC05)),
+                                                child: Container(
+                                                    color: Color(0xFFFBBC05)),
                                               ),
                                             ],
                                           ),

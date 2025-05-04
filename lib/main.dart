@@ -8,15 +8,17 @@ import 'screens/splash/splash_screen.dart';
 import 'screens/auth/landing_page.dart';
 import 'screens/auth/email_login_screen.dart';
 import 'screens/auth/email_signup_screen.dart';
+import 'screens/onboarding/onboarding_get_started_screen.dart';
+import 'utils/onboarding_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  
+
   runApp(const RateMyUstaadApp());
 }
 
@@ -42,6 +44,16 @@ class RateMyUstaadApp extends StatelessWidget {
           '/login': (context) => const EmailLoginScreen(),
           '/signup': (context) => const EmailSignupScreen(),
           '/home': (context) => const HomeScreen(),
+           '/onboarding': (context) => OnboardingGetStartedScreen(
+            onContinue: () async {
+              await OnboardingHelper.setOnboardingCompleted();
+              Navigator.of(context).pushReplacementNamed('/home');
+            },
+            onSkip: () async {
+              await OnboardingHelper.setOnboardingCompleted();
+              Navigator.of(context).pushReplacementNamed('/home');
+            },
+           ),
         },
         debugShowCheckedModeBanner: false,
       ),
