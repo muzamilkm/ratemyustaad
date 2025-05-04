@@ -490,8 +490,40 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                       ],
                     ),
                     child: TextButton(
-                      onPressed: () {
-                        // No functionality yet as per requirements
+                      onPressed: () async {
+                        // Show loading state
+                        setState(() {
+                          _isCreatingAccount = true;
+                        });
+                        
+                        try {
+                          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                          final success = await authProvider.signInWithGoogle();
+                          
+                          if (success && mounted) {
+                            // Navigate to home screen on success
+                            Navigator.of(context).pushReplacementNamed('/home');
+                          } else if (mounted) {
+                            // Reset loading state if sign-in was unsuccessful or canceled
+                            setState(() {
+                              _isCreatingAccount = false;
+                            });
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            setState(() {
+                              _isCreatingAccount = false;
+                            });
+                            
+                            // Show error message
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Google sign-in failed: ${e.toString()}'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
                       },
                       style: TextButton.styleFrom(
                         backgroundColor: Colors.white,

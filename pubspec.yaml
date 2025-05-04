@@ -36,6 +36,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^5.0.0
   flutter_native_splash: ^2.3.10
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
@@ -59,3 +60,17 @@ flutter:
           weight: 200
         - asset: assets/fonts/Manrope-ExtraBold.ttf
           weight: 800
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/Logo.png"
+  adaptive_icon_background: "#5E17EB" 
+  adaptive_icon_foreground: "assets/images/Logo.png"
+  remove_alpha_ios: true
+  web:
+    generate: false
+  windows:
+    generate: false
+  macos:
+    generate: false

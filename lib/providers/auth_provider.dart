@@ -38,6 +38,30 @@ class AuthProvider extends ChangeNotifier {
     }
   }
   
+  // Sign in with Google
+  Future<bool> signInWithGoogle() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    
+    try {
+      final userCredential = await _authService.signInWithGoogle();
+      _isLoading = false;
+      notifyListeners();
+      
+      // If user canceled the sign-in process, userCredential will be null
+      return userCredential != null;
+    } on FirebaseAuthException catch (e) {
+      _handleAuthError(e);
+      return false;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+  
   // Create account with email and password
   Future<bool> createAccount(String email, String password) async {
     _isLoading = true;
