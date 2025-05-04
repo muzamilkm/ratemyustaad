@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -134,6 +135,13 @@ class AuthProvider extends ChangeNotifier {
   // Sign out
   Future<void> signOut() async {
     try {
+      // Clear any saved credentials in SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('email');
+      await prefs.remove('password');
+      await prefs.setBool('rememberMe', false);
+      
+      // Sign out from Firebase
       await _authService.signOut();
       notifyListeners();
     } catch (e) {
