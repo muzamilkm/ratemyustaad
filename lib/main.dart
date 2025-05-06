@@ -9,8 +9,8 @@ import 'screens/splash/splash_screen.dart';
 import 'screens/auth/landing_page.dart';
 import 'screens/auth/email_login_screen.dart';
 import 'screens/auth/email_signup_screen.dart';
-import 'screens/onboarding/onboarding_get_started_screen.dart';
-import 'screens/onboarding/onboarding_academic_background_screen.dart';  // Add this import
+import 'screens/onboarding/get_started_screen.dart';
+import 'screens/onboarding/academic_background_screen.dart';  // Add this import
 import 'services/onboarding_flow.dart';  // Add this import if not already there
 import 'utils/onboarding_helper.dart';
 
