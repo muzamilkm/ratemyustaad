@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:ratemyustaad/providers/onboarding_provider.dart';
 
 class OnboardingGetStartedScreen extends StatefulWidget {
   final VoidCallback onContinue;
@@ -12,10 +14,12 @@ class OnboardingGetStartedScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<OnboardingGetStartedScreen> createState() => _OnboardingGetStartedScreenState();
+  State<OnboardingGetStartedScreen> createState() =>
+      _OnboardingGetStartedScreenState();
 }
 
-class _OnboardingGetStartedScreenState extends State<OnboardingGetStartedScreen> {
+class _OnboardingGetStartedScreenState
+    extends State<OnboardingGetStartedScreen> {
   final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
@@ -39,7 +43,12 @@ class _OnboardingGetStartedScreenState extends State<OnboardingGetStartedScreen>
   ];
 
   // List of gender options
-  final List<String> _genders = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
+  final List<String> _genders = [
+    'Male',
+    'Female',
+    'Non-binary',
+    'Prefer not to say'
+  ];
 
   @override
   void dispose() {
@@ -51,7 +60,8 @@ class _OnboardingGetStartedScreenState extends State<OnboardingGetStartedScreen>
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _birthday ?? DateTime.now().subtract(const Duration(days: 365 * 18)),
+      initialDate:
+          _birthday ?? DateTime.now().subtract(const Duration(days: 365 * 18)),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
       builder: (context, child) {
@@ -82,7 +92,8 @@ class _OnboardingGetStartedScreenState extends State<OnboardingGetStartedScreen>
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF01242D), size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new,
+              color: Color(0xFF01242D), size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
@@ -130,7 +141,7 @@ class _OnboardingGetStartedScreenState extends State<OnboardingGetStartedScreen>
                     ),
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // Title
                   const Text(
                     "Let's get started",
@@ -143,7 +154,7 @@ class _OnboardingGetStartedScreenState extends State<OnboardingGetStartedScreen>
                     ),
                   ),
                   const SizedBox(height: 8),
-                  
+
                   // Subtitle
                   const Text(
                     "We'll ask you a few questions to tailor your experience",
@@ -156,7 +167,7 @@ class _OnboardingGetStartedScreenState extends State<OnboardingGetStartedScreen>
                     ),
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // First Name field
                   const Text(
                     "First Name",
@@ -187,7 +198,8 @@ class _OnboardingGetStartedScreenState extends State<OnboardingGetStartedScreen>
                           letterSpacing: -0.03,
                           color: Color(0xFF708090),
                         ),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         border: InputBorder.none,
                         isDense: true,
                       ),
@@ -205,7 +217,7 @@ class _OnboardingGetStartedScreenState extends State<OnboardingGetStartedScreen>
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Last Name field
                   const Text(
                     "Last Name",
@@ -236,7 +248,8 @@ class _OnboardingGetStartedScreenState extends State<OnboardingGetStartedScreen>
                           letterSpacing: -0.03,
                           color: Color(0xFF708090),
                         ),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         border: InputBorder.none,
                         isDense: true,
                       ),
@@ -254,7 +267,7 @@ class _OnboardingGetStartedScreenState extends State<OnboardingGetStartedScreen>
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Birthday field
                   const Text(
                     "Birthday",
@@ -277,14 +290,16 @@ class _OnboardingGetStartedScreenState extends State<OnboardingGetStartedScreen>
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
                               _birthday == null
                                   ? "When is your birthday?"
-                                  : DateFormat('MMM d, yyyy').format(_birthday!),
+                                  : DateFormat('MMM d, yyyy')
+                                      .format(_birthday!),
                               style: TextStyle(
                                 fontFamily: 'Manrope',
                                 fontSize: 15,
@@ -305,7 +320,7 @@ class _OnboardingGetStartedScreenState extends State<OnboardingGetStartedScreen>
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Gender field
                   const Text(
                     "Gender",
@@ -336,7 +351,8 @@ class _OnboardingGetStartedScreenState extends State<OnboardingGetStartedScreen>
                           letterSpacing: -0.03,
                           color: Color(0xFF708090),
                         ),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         border: InputBorder.none,
                         isDense: true,
                       ),
@@ -350,7 +366,8 @@ class _OnboardingGetStartedScreenState extends State<OnboardingGetStartedScreen>
                         letterSpacing: -0.03,
                         color: Color(0xFF01242D),
                       ),
-                      items: _genders.map<DropdownMenuItem<String>>((String value) {
+                      items: _genders
+                          .map<DropdownMenuItem<String>>((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
                           child: Text(value),
@@ -364,7 +381,7 @@ class _OnboardingGetStartedScreenState extends State<OnboardingGetStartedScreen>
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Country field
                   const Text(
                     "Where are you from?",
@@ -395,7 +412,8 @@ class _OnboardingGetStartedScreenState extends State<OnboardingGetStartedScreen>
                           letterSpacing: -0.03,
                           color: Color(0xFF708090),
                         ),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         border: InputBorder.none,
                         isDense: true,
                       ),
@@ -409,7 +427,8 @@ class _OnboardingGetStartedScreenState extends State<OnboardingGetStartedScreen>
                         letterSpacing: -0.03,
                         color: Color(0xFF01242D),
                       ),
-                      items: _countries.map<DropdownMenuItem<String>>((String value) {
+                      items: _countries
+                          .map<DropdownMenuItem<String>>((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
                           child: Text(value),
@@ -423,7 +442,7 @@ class _OnboardingGetStartedScreenState extends State<OnboardingGetStartedScreen>
                     ),
                   ),
                   const SizedBox(height: 32),
-                  
+
                   // Continue button
                   Container(
                     height: 52,
@@ -442,6 +461,18 @@ class _OnboardingGetStartedScreenState extends State<OnboardingGetStartedScreen>
                     child: ElevatedButton(
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
+                          // Update the data in provider
+                          final onboardingProvider =
+                              Provider.of<OnboardingProvider>(context,
+                                  listen: false);
+                          onboardingProvider.updateUserData(
+                            firstName: _firstNameController.text,
+                            lastName: _lastNameController.text,
+                            birthday: _birthday,
+                            gender: _gender,
+                            country: _country,
+                          );
+
                           // Proceed to next screen
                           widget.onContinue();
                         }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/onboarding_provider.dart';
 import '../screens/onboarding/onboarding_get_started_screen.dart';
+import '../screens/onboarding/onboarding_academic_background_screen.dart';
 
 class OnboardingFlow extends StatefulWidget {
   final VoidCallback onComplete;
@@ -54,6 +55,20 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     }
   }
 
+  void _handleGetStartedContinue() {
+    final onboardingProvider = Provider.of<OnboardingProvider>(context, listen: false);
+    
+    // Update the data in provider from the first screen
+    // This would ideally capture values from the first screen's controllers
+    onboardingProvider.updateUserData(
+      firstName: "User's First Name", // Replace with actual values from the form
+      lastName: "User's Last Name",
+      // Add other fields from first screen
+    );
+    
+    _handleContinue();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<OnboardingProvider>(
@@ -73,24 +88,24 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
             children: [
               // Step 1: Get Started
               OnboardingGetStartedScreen(
-                onContinue: () {
-                  // Update the data in provider
-                  // For now, let's just proceed to the next step
-                  _handleContinue();
-                },
+                onContinue: _handleGetStartedContinue,
+                onSkip: _handleSkip,
+              ),
+              
+              // Step 2: Academic Background
+              OnboardingAcademicBackgroundScreen(
+                onContinue: _handleContinue,
                 onSkip: _handleSkip,
               ),
               
               // Add other onboarding screens here
               // For example:
-              // AcademicBackgroundScreen(...),
               // UniversityPreferencesScreen(...),
               // CareerGoalsScreen(...),
               // etc.
               
               // Placeholder for remaining screens
               // You'll replace these with actual screens
-              const Scaffold(body: Center(child: Text("Academic Background"))),
               const Scaffold(body: Center(child: Text("University Preferences"))),
               const Scaffold(body: Center(child: Text("Career Goals"))),
               const Scaffold(body: Center(child: Text("Financial Preferences"))),
