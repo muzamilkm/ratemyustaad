@@ -20,7 +20,15 @@ class OnboardingUserModel {
   String? specificUniversity;  // specific university
   
   String? graduationYear;
+  
+  // Career goals fields
+  String? fieldOfInterest;
   String? careerGoal;  // e.g., "Research", "Industry", etc.
+  String? partTimeWork;
+  String? internships;
+  String? entrepreneurship;
+  Map<String, String>? careerPreferences;  // For storing all career-related preferences
+
   Map<String, bool>? financialPreferences;  // e.g., {"Scholarship": true, "Student Loan": false}
   Map<String, bool>? livingPreferences;  // e.g., {"On-campus": true, "Off-campus": false}
 
@@ -41,7 +49,12 @@ class OnboardingUserModel {
     this.universitySize,
     this.specificUniversity,
     this.graduationYear,
+    this.fieldOfInterest,
     this.careerGoal,
+    this.partTimeWork,
+    this.internships,
+    this.entrepreneurship,
+    this.careerPreferences,
     this.financialPreferences,
     this.livingPreferences,
   });
@@ -65,7 +78,12 @@ class OnboardingUserModel {
       'universitySize': universitySize,
       'university': specificUniversity,
       'graduationYear': graduationYear,
+      'fieldOfInterest': fieldOfInterest,
       'careerGoal': careerGoal,
+      'partTimeWork': partTimeWork,
+      'internships': internships,
+      'entrepreneurship': entrepreneurship,
+      'careerPreferences': careerPreferences,
       'financialPreferences': financialPreferences,
       'livingPreferences': livingPreferences,
     };
@@ -88,9 +106,16 @@ class OnboardingUserModel {
       universityType: map['universityType'],
       universityRanking: map['universityRanking'],
       universitySize: map['universitySize'],
-      specificUniversity: map['specificUniversity'],
+      specificUniversity: map['university'],
       graduationYear: map['graduationYear'],
+      fieldOfInterest: map['fieldOfInterest'],
       careerGoal: map['careerGoal'],
+      partTimeWork: map['partTimeWork'],
+      internships: map['internships'],
+      entrepreneurship: map['entrepreneurship'],
+      careerPreferences: map['careerPreferences'] != null 
+          ? Map<String, String>.from(map['careerPreferences']) 
+          : null,
       financialPreferences: map['financialPreferences'] != null 
           ? Map<String, bool>.from(map['financialPreferences']) 
           : null,
@@ -118,7 +143,12 @@ class OnboardingUserModel {
     String? universitySize,
     String? university,
     String? graduationYear,
+    String? fieldOfInterest,
     String? careerGoal,
+    String? partTimeWork,
+    String? internships,
+    String? entrepreneurship,
+    Map<String, String>? careerPreferences,
     Map<String, bool>? financialPreferences,
     Map<String, bool>? livingPreferences,
   }) {
@@ -139,7 +169,12 @@ class OnboardingUserModel {
       universitySize: universitySize ?? this.universitySize,
       specificUniversity: university ?? this.specificUniversity,
       graduationYear: graduationYear ?? this.graduationYear,
+      fieldOfInterest: fieldOfInterest ?? this.fieldOfInterest,
       careerGoal: careerGoal ?? this.careerGoal,
+      partTimeWork: partTimeWork ?? this.partTimeWork,
+      internships: internships ?? this.internships,
+      entrepreneurship: entrepreneurship ?? this.entrepreneurship,
+      careerPreferences: careerPreferences ?? this.careerPreferences,
       financialPreferences: financialPreferences ?? this.financialPreferences,
       livingPreferences: livingPreferences ?? this.livingPreferences,
     );

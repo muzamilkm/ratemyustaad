@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ratemyustaad/providers/onboarding_provider.dart';
 
-class OnboardingUniversityPreferencesScreen extends StatefulWidget {
+class OnboardingCareerGoalsScreen extends StatefulWidget {
   final VoidCallback onContinue;
   final VoidCallback onSkip;
   final VoidCallback onBack;
 
-  const OnboardingUniversityPreferencesScreen({
+  const OnboardingCareerGoalsScreen({
     Key? key,
     required this.onContinue,
     required this.onSkip,
@@ -15,66 +15,52 @@ class OnboardingUniversityPreferencesScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<OnboardingUniversityPreferencesScreen> createState() =>
-      _OnboardingUniversityPreferencesScreenState();
+  State<OnboardingCareerGoalsScreen> createState() =>
+      _OnboardingCareerGoalsScreenState();
 }
 
-class _OnboardingUniversityPreferencesScreenState
-    extends State<OnboardingUniversityPreferencesScreen> {
+class _OnboardingCareerGoalsScreenState
+    extends State<OnboardingCareerGoalsScreen> {
   final _formKey = GlobalKey<FormState>();
-  String? _studyLocation;
-  String? _universityType;
-  String? _universityRanking;
-  String? _universitySize;
-  String? _specificUniversity;
+  String? _fieldOfInterest;
+  String? _careerGoal;
+  String? _partTimeWork;
+  String? _internships;
+  String? _entrepreneurship;
 
-  // List of countries for study location
-  final List<String> _countries = [
-    'United States',
-    'Canada',
-    'United Kingdom',
-    'Australia',
-    'Pakistan',
-    'India',
-    'Germany',
-    'France',
-    'China',
-    'Japan',
-    // Add more countries as needed
+  // List of field of interest options
+  final List<String> _fieldsOfInterest = [
+    'Business & Management',
+    'Computer Science & IT',
+    'Engineering',
+    'Healthcare & Medicine',
+    'Social Sciences',
+    'Arts & Humanities',
+    'Natural Sciences',
+    'Education',
+    'Law',
+    'Agriculture & Environment',
+    'Other'
   ];
 
-  // List of university types
-  final List<String> _universityTypes = [
-    'Public',
-    'Private',
-    'Community College',
-    'Liberal Arts',
-    'Research University',
-    'Technical Institute',
-    'Online University',
-    'No Preference'
+  // List of career goal options
+  final List<String> _careerGoals = [
+    'Industry Position',
+    'Academic Career',
+    'Research',
+    'Entrepreneurship',
+    'Public Service',
+    'Further Education',
+    'Self-Employment',
+    'Non-Profit Work',
+    'Still Exploring',
+    'Other'
   ];
 
-  // List of university rankings
-  final List<String> _universityRankings = [
-    'Top 10',
-    'Top 50',
-    'Top 100',
-    'Top 500',
-    'Not ranked',
-    'No Preference'
-  ];
+  // List of yes/no options
+  final List<String> _yesNoOptions = ['Yes', 'No', 'Not Sure'];
 
-  // List of university sizes
-  final List<String> _universitySizes = [
-    'Small (< 5,000 students)',
-    'Medium (5,000 - 15,000 students)',
-    'Large (15,000 - 30,000 students)',
-    'Very Large (> 30,000 students)',
-    'No Preference'
-  ];
-
-  // Constants for consistent styling - updated to match get_started_screen
+  // Constants for consistent styling - matching get_started_screen
   static const primaryColor = Color(0xFF5E17EB);
   static const darkTextColor = Color(0xFF01242D);
   static const hintTextColor = Color(0xFF708090);
@@ -199,43 +185,6 @@ class _OnboardingUniversityPreferencesScreenState
     );
   }
 
-  Widget _buildTextField({
-    required String hintText,
-    required void Function(String) onChanged,
-  }) {
-    return Container(
-      height: 50,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: borderColor),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: TextFormField(
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: hintStyle,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          border: InputBorder.none,
-          isDense: true,
-          suffixIcon: const Icon(
-            Icons.keyboard_arrow_down,
-            color: hintTextColor,
-          ),
-        ),
-        style: inputTextStyle,
-        onChanged: onChanged,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -287,7 +236,7 @@ class _OnboardingUniversityPreferencesScreenState
                             children: [
                               Container(
                                 width: MediaQuery.of(context).size.width *
-                                    0.40, // 3/8 steps completed
+                                    0.55, // 4/8 steps completed
                                 decoration: BoxDecoration(
                                   color: primaryColor,
                                   borderRadius: BorderRadius.circular(8),
@@ -299,8 +248,7 @@ class _OnboardingUniversityPreferencesScreenState
                         const SizedBox(height: 28),
 
                         // Title and subtitle
-                        const Text("Your University Preferences",
-                            style: headingStyle),
+                        const Text("Your Career Goals", style: headingStyle),
                         const SizedBox(height: 8),
                         const Text(
                           "We'll ask you a few questions to tailor your experience",
@@ -308,76 +256,77 @@ class _OnboardingUniversityPreferencesScreenState
                         ),
                         const SizedBox(height: 32),
 
-                        // Study Location field
+                        // Field of Interest
                         _buildInputField(
-                          label: "Study Location",
+                          label: "Field of Interest",
                           child: _buildDropdownField(
-                            hintText: "Select a country",
-                            value: _studyLocation,
-                            items: _countries,
+                            hintText: "Select your main area of interest",
+                            value: _fieldOfInterest,
+                            items: _fieldsOfInterest,
                             onChanged: (value) {
                               setState(() {
-                                _studyLocation = value;
+                                _fieldOfInterest = value;
                               });
                             },
                           ),
                         ),
 
-                        // University Type field
+                        // Career Goal
                         _buildInputField(
-                          label: "University Type",
+                          label: "Career Goal",
                           child: _buildDropdownField(
-                            hintText: "Select University Type",
-                            value: _universityType,
-                            items: _universityTypes,
+                            hintText: "Select your long term goal",
+                            value: _careerGoal,
+                            items: _careerGoals,
                             onChanged: (value) {
                               setState(() {
-                                _universityType = value;
+                                _careerGoal = value;
                               });
                             },
                           ),
                         ),
 
-                        // University Ranking field
+                        // Part-Time Work
                         _buildInputField(
-                          label: "University Ranking",
+                          label: "Part-Time Work",
                           child: _buildDropdownField(
-                            hintText: "Select University Ranking",
-                            value: _universityRanking,
-                            items: _universityRankings,
+                            hintText: "Are you open to part-time work?",
+                            value: _partTimeWork,
+                            items: _yesNoOptions,
                             onChanged: (value) {
                               setState(() {
-                                _universityRanking = value;
+                                _partTimeWork = value;
                               });
                             },
                           ),
                         ),
 
-                        // University Size field
+                        // Internships & Co-ops
                         _buildInputField(
-                          label: "University Size",
+                          label: "Internships & Co-ops",
                           child: _buildDropdownField(
-                            hintText: "Select University Size",
-                            value: _universitySize,
-                            items: _universitySizes,
+                            hintText: "Are you interested in internships?",
+                            value: _internships,
+                            items: _yesNoOptions,
                             onChanged: (value) {
                               setState(() {
-                                _universitySize = value;
+                                _internships = value;
                               });
                             },
                           ),
                         ),
 
-                        // Specific University field
+                        // Entrepreneurship
                         _buildInputField(
-                          label: "Specific University?",
+                          label: "Entrepreneurship?",
                           bottomPadding: 36.0,
-                          child: _buildTextField(
-                            hintText:
-                                "Is there a university you're considering?",
+                          child: _buildDropdownField(
+                            hintText: "Are you interested in entrepreneurship?",
+                            value: _entrepreneurship,
+                            items: _yesNoOptions,
                             onChanged: (value) {
                               setState(() {
-                                _specificUniversity = value;
+                                _entrepreneurship = value;
                               });
                             },
                           ),
@@ -402,12 +351,14 @@ class _OnboardingUniversityPreferencesScreenState
                                 final onboardingProvider =
                                     Provider.of<OnboardingProvider>(context,
                                         listen: false);
+
+                                // Update user data with both individual fields and the map
                                 onboardingProvider.updateUserData(
-                                  studyLocation: _studyLocation,
-                                  universityType: _universityType,
-                                  universityRanking: _universityRanking,
-                                  universitySize: _universitySize,
-                                  specificUniversity: _specificUniversity,
+                                  fieldOfInterest: _fieldOfInterest,
+                                  careerGoal: _careerGoal,
+                                  partTimeWork: _partTimeWork,
+                                  internships: _internships,
+                                  entrepreneurship: _entrepreneurship,                                  
                                 );
 
                                 widget.onContinue();

@@ -4,6 +4,7 @@ import 'package:ratemyustaad/providers/onboarding_provider.dart';
 import 'package:ratemyustaad/screens/onboarding/get_started_screen.dart';
 import 'package:ratemyustaad/screens/onboarding/academic_background_screen.dart';
 import 'package:ratemyustaad/screens/onboarding/university_preferences_screen.dart';
+import 'package:ratemyustaad/screens/onboarding/career_goals_screen.dart'; // Add this import
 
 class OnboardingFlow extends StatefulWidget {
   final VoidCallback onComplete;
@@ -77,22 +78,6 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     }
   }
 
-  void _handleGetStartedContinue() {
-    final onboardingProvider =
-        Provider.of<OnboardingProvider>(context, listen: false);
-
-    // Update the data from first screen controllers
-    // This code already exists, just keeping it as is
-    onboardingProvider.updateUserData(
-      firstName:
-          "User's First Name", // Replace with actual values from the form
-      lastName: "User's Last Name",
-      // Add other fields from first screen
-    );
-
-    _handleContinue();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Consumer<OnboardingProvider>(
@@ -111,7 +96,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
             physics: const NeverScrollableScrollPhysics(),
             children: [
               OnboardingGetStartedScreen(
-                onContinue: _handleGetStartedContinue,
+                onContinue: _handleContinue,
                 onSkip: _handleSkip,
                 onBack: _handleBack,
               ),
@@ -128,15 +113,15 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                 onBack: _handleBack,
               ),
 
-              // Add other onboarding screens here
-              // For example:
-              // UniversityPreferencesScreen(...),
-              // CareerGoalsScreen(...),
-              // etc.
+              // Add the new Career Goals screen here
+              OnboardingCareerGoalsScreen(
+                onContinue: _handleContinue,
+                onSkip: _handleSkip,
+                onBack: _handleBack,
+              ),
 
               // Placeholder for remaining screens
               // You'll replace these with actual screens
-              const Scaffold(body: Center(child: Text("Career Goals"))),
               const Scaffold(
                   body: Center(child: Text("Financial Preferences"))),
               const Scaffold(
