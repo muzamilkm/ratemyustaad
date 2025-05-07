@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import 'email_signup_screen.dart';
-import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../utils/onboarding_helper.dart';
 
 class EmailLoginScreen extends StatefulWidget {
   const EmailLoginScreen({super.key});
@@ -32,7 +32,8 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F8FF), // Light blue background from CSS
+      backgroundColor:
+          const Color(0xFFF0F8FF), // Light blue background from CSS
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -58,13 +59,14 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                           child: Icon(
                             Icons.arrow_back_ios_new,
                             size: 18,
-                            color: Color(0xFF5E17EB), // Using purple color to match signup page
+                            color: Color(
+                                0xFF5E17EB), // Using purple color to match signup page
                           ),
                         ),
                       ),
                     ),
                   ),
-                  
+
                   // Step indicator text (top right)
                   Align(
                     alignment: Alignment.centerRight,
@@ -82,7 +84,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                       ),
                     ),
                   ),
-                  
+
                   // Heading
                   const SizedBox(height: 24),
                   const Text(
@@ -95,7 +97,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                       color: Color(0xFF01242D),
                     ),
                   ),
-                  
+
                   // Subheading
                   const SizedBox(height: 8),
                   const Text(
@@ -108,10 +110,10 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                       color: Color(0xFF708090),
                     ),
                   ),
-                  
+
                   // Form fields
                   const SizedBox(height: 24),
-                  
+
                   // Email field
                   const Text(
                     "Email address",
@@ -143,7 +145,8 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                           letterSpacing: -0.03,
                           color: Color(0xFF708090),
                         ),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         border: InputBorder.none,
                         isDense: true,
                       ),
@@ -163,7 +166,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                       },
                     ),
                   ),
-                  
+
                   // Password field
                   const SizedBox(height: 20),
                   const Text(
@@ -196,7 +199,8 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                           letterSpacing: -0.03,
                           color: Color(0xFF708090),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
                         border: InputBorder.none,
                         isDense: true,
                         suffixIcon: GestureDetector(
@@ -208,7 +212,9 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                           child: Padding(
                             padding: const EdgeInsets.all(13.0),
                             child: Icon(
-                              _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                              _obscurePassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
                               color: const Color(0xFF708090),
                               size: 18,
                             ),
@@ -232,7 +238,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                       },
                     ),
                   ),
-                  
+
                   // Remember me & Forgot password row
                   const SizedBox(height: 20),
                   Row(
@@ -252,15 +258,17 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                               height: 18,
                               decoration: BoxDecoration(
                                 border: Border.all(
-                                  color: _rememberMe 
-                                      ? const Color(0xFF5E17EB) 
+                                  color: _rememberMe
+                                      ? const Color(0xFF5E17EB)
                                       : const Color(0xFFCBD5E1),
                                   width: 0.75,
                                 ),
                                 borderRadius: BorderRadius.circular(4),
-                                color: _rememberMe ? const Color(0xFF5E17EB) : Colors.white,
+                                color: _rememberMe
+                                    ? const Color(0xFF5E17EB)
+                                    : Colors.white,
                               ),
-                              child: _rememberMe 
+                              child: _rememberMe
                                   ? const Icon(
                                       Icons.check,
                                       size: 14,
@@ -289,7 +297,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                           ),
                         ],
                       ),
-                      
+
                       // Forgot password link
                       GestureDetector(
                         onTap: () {
@@ -302,13 +310,14 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                             fontWeight: FontWeight.w500,
                             fontSize: 14,
                             letterSpacing: -0.03,
-                            color: Color(0xFF5E17EB), // Changed to match purple theme
+                            color: Color(
+                                0xFF5E17EB), // Changed to match purple theme
                           ),
                         ),
                       ),
                     ],
                   ),
-                  
+
                   // Login button
                   const SizedBox(height: 24),
                   Consumer<AuthProvider>(
@@ -330,7 +339,8 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                           Container(
                             height: 52,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF5E17EB), // Changed color to match purple theme
+                              color: const Color(
+                                  0xFF5E17EB), // Changed color to match purple theme
                               borderRadius: BorderRadius.circular(8),
                               boxShadow: const [
                                 BoxShadow(
@@ -341,7 +351,8 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                               ],
                             ),
                             child: ElevatedButton(
-                              onPressed: (authProvider.isLoading || _isLoggingIn)
+                              onPressed: (authProvider.isLoading ||
+                                      _isLoggingIn)
                                   ? null
                                   : () async {
                                       if (_formKey.currentState!.validate()) {
@@ -349,21 +360,26 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                                         setState(() {
                                           _isLoggingIn = true;
                                         });
-                                        
+
                                         // Hide keyboard
                                         FocusScope.of(context).unfocus();
 
-                                        final success = await authProvider.signInWithEmail(
+                                        final success =
+                                            await authProvider.signInWithEmail(
                                           _emailController.text.trim(),
                                           _passwordController.text,
                                         );
 
                                         // Save credentials if remember me is checked
                                         if (success && _rememberMe) {
-                                          final prefs = await SharedPreferences.getInstance();
-                                          await prefs.setString('email', _emailController.text.trim());
-                                          await prefs.setString('password', _passwordController.text);
-                                          await prefs.setBool('rememberMe', true);
+                                          final prefs = await SharedPreferences
+                                              .getInstance();
+                                          await prefs.setString('email',
+                                              _emailController.text.trim());
+                                          await prefs.setString('password',
+                                              _passwordController.text);
+                                          await prefs.setBool(
+                                              'rememberMe', true);
                                         }
 
                                         // Reset local loading state if mounted
@@ -374,16 +390,26 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                                         }
 
                                         if (success && context.mounted) {
-                                          // Show success message
-                                          ScaffoldMessenger.of(context).showSnackBar(
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
                                             const SnackBar(
-                                              content: Text('Successfully signed in!'),
+                                              content: Text(
+                                                  'Successfully signed in!'),
                                               backgroundColor: Colors.green,
                                             ),
                                           );
 
-                                          // Navigate to home screen
-                                          Navigator.of(context).pushReplacementNamed('/home');
+                                          final completed =
+                                              await OnboardingHelper
+                                                  .isOnboardingCompleted();
+                                          if (!completed) {
+                                            Navigator.of(context)
+                                                .pushReplacementNamed(
+                                                    '/onboarding');
+                                          } else {
+                                            Navigator.of(context)
+                                                .pushReplacementNamed('/home');
+                                          }
                                         }
                                       }
                                     },
@@ -396,7 +422,8 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                               ),
                               child: (authProvider.isLoading || _isLoggingIn)
                                   ? Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         SizedBox(
                                           width: 20,
@@ -435,7 +462,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                       );
                     },
                   ),
-                  
+
                   // OR divider
                   const SizedBox(height: 24),
                   Row(
@@ -467,7 +494,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                       ),
                     ],
                   ),
-                  
+
                   // Google sign in button (non-functional for now)
                   const SizedBox(height: 24),
                   Container(
@@ -489,20 +516,22 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                         setState(() {
                           _isLoggingIn = true;
                         });
-                        
+
                         try {
-                          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                          final authProvider =
+                              Provider.of<AuthProvider>(context, listen: false);
                           final success = await authProvider.signInWithGoogle();
-                          
+
                           if (success && mounted) {
                             // Show success message
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Successfully signed in with Google!'),
+                                content:
+                                    Text('Successfully signed in with Google!'),
                                 backgroundColor: Colors.green,
                               ),
                             );
-                            
+
                             // Navigate to home screen on success
                             Navigator.of(context).pushReplacementNamed('/home');
                           } else if (mounted) {
@@ -510,7 +539,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                             setState(() {
                               _isLoggingIn = false;
                             });
-                            
+
                             if (authProvider.error != null) {
                               // Show error if there was one
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -526,11 +555,12 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                             setState(() {
                               _isLoggingIn = false;
                             });
-                            
+
                             // Show error message
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Google sign-in failed: ${e.toString()}'),
+                                content: Text(
+                                    'Google sign-in failed: ${e.toString()}'),
                                 backgroundColor: Colors.red,
                               ),
                             );
@@ -573,10 +603,12 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                                           child: Column(
                                             children: [
                                               Expanded(
-                                                child: Container(color: Color(0xFF4285F4)),
+                                                child: Container(
+                                                    color: Color(0xFF4285F4)),
                                               ),
                                               Expanded(
-                                                child: Container(color: Color(0xFF34A853)),
+                                                child: Container(
+                                                    color: Color(0xFF34A853)),
                                               ),
                                             ],
                                           ),
@@ -585,10 +617,12 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                                           child: Column(
                                             children: [
                                               Expanded(
-                                                child: Container(color: Color(0xFFEA4335)),
+                                                child: Container(
+                                                    color: Color(0xFFEA4335)),
                                               ),
                                               Expanded(
-                                                child: Container(color: Color(0xFFFBBC05)),
+                                                child: Container(
+                                                    color: Color(0xFFFBBC05)),
                                               ),
                                             ],
                                           ),
@@ -615,7 +649,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                       ),
                     ),
                   ),
-                  
+
                   // No account text with sign up link
                   const SizedBox(height: 24),
                   Row(
@@ -703,10 +737,11 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                 return TextButton(
                   onPressed: () async {
                     if (formKey.currentState!.validate()) {
-                      await authProvider.resetPassword(emailController.text.trim());
+                      await authProvider
+                          .resetPassword(emailController.text.trim());
                       if (context.mounted) {
                         Navigator.of(context).pop();
-                        
+
                         // Show message
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -715,7 +750,9 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                                   ? authProvider.error!
                                   : 'Password reset email sent. Check your inbox.',
                             ),
-                            backgroundColor: authProvider.error != null ? Colors.red : Colors.green,
+                            backgroundColor: authProvider.error != null
+                                ? Colors.red
+                                : Colors.green,
                           ),
                         );
                       }
