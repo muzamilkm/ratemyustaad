@@ -291,7 +291,8 @@ class _OnboardingGetStartedScreenState
                     child: Row(
                       children: [
                         Container(
-                          width: MediaQuery.of(context).size.width * 0.1,
+                          width: MediaQuery.of(context).size.width *
+                              0.2, // Changed from 0.1 to 0.2 (1/5)
                           decoration: BoxDecoration(
                             color: primaryColor,
                             borderRadius: BorderRadius.circular(8),

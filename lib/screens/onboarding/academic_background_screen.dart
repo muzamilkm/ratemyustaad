@@ -271,7 +271,7 @@ class _OnboardingAcademicBackgroundScreenState
                       children: [
                         Container(
                           width: MediaQuery.of(context).size.width *
-                              0.25, // 2/8 steps completed
+                              0.4, // Changed from 0.25 to 0.4 (2/5)
                           decoration: BoxDecoration(
                             color: primaryColor,
                             borderRadius: BorderRadius.circular(8),

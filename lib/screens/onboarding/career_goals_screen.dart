@@ -236,7 +236,7 @@ class _OnboardingCareerGoalsScreenState
                             children: [
                               Container(
                                 width: MediaQuery.of(context).size.width *
-                                    0.55, // 4/8 steps completed
+                                    0.8, // Changed from 0.55 to 0.8 (4/5)
                                 decoration: BoxDecoration(
                                   color: primaryColor,
                                   borderRadius: BorderRadius.circular(8),
@@ -358,7 +358,7 @@ class _OnboardingCareerGoalsScreenState
                                   careerGoal: _careerGoal,
                                   partTimeWork: _partTimeWork,
                                   internships: _internships,
-                                  entrepreneurship: _entrepreneurship,                                  
+                                  entrepreneurship: _entrepreneurship,
                                 );
 
                                 widget.onContinue();

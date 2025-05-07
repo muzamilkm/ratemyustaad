@@ -4,7 +4,8 @@ import 'package:ratemyustaad/providers/onboarding_provider.dart';
 import 'package:ratemyustaad/screens/onboarding/get_started_screen.dart';
 import 'package:ratemyustaad/screens/onboarding/academic_background_screen.dart';
 import 'package:ratemyustaad/screens/onboarding/university_preferences_screen.dart';
-import 'package:ratemyustaad/screens/onboarding/career_goals_screen.dart'; // Add this import
+import 'package:ratemyustaad/screens/onboarding/career_goals_screen.dart';
+import 'package:ratemyustaad/screens/onboarding/welcome_aboard_screen.dart'; // Add this import
 
 class OnboardingFlow extends StatefulWidget {
   final VoidCallback onComplete;
@@ -42,7 +43,8 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         Provider.of<OnboardingProvider>(context, listen: false);
 
     // If this is the last step, save data and complete onboarding
-    if (onboardingProvider.currentStep >= 6) {
+    if (onboardingProvider.currentStep >= 4) {
+      // This is correct for 5 screens (0-4)
       onboardingProvider.saveUserData().then((success) {
         if (success) {
           widget.onComplete();
@@ -59,7 +61,6 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     }
   }
 
-  // Add this new method to handle going back to previous page
   void _handleBack() {
     final onboardingProvider =
         Provider.of<OnboardingProvider>(context, listen: false);
@@ -100,33 +101,25 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                 onSkip: _handleSkip,
                 onBack: _handleBack,
               ),
-
               OnboardingAcademicBackgroundScreen(
                 onContinue: _handleContinue,
                 onSkip: _handleSkip,
                 onBack: _handleBack,
               ),
-
               OnboardingUniversityPreferencesScreen(
                 onContinue: _handleContinue,
                 onSkip: _handleSkip,
                 onBack: _handleBack,
               ),
-
-              // Add the new Career Goals screen here
               OnboardingCareerGoalsScreen(
                 onContinue: _handleContinue,
                 onSkip: _handleSkip,
                 onBack: _handleBack,
               ),
-
-              // Placeholder for remaining screens
-              // You'll replace these with actual screens
-              const Scaffold(
-                  body: Center(child: Text("Financial Preferences"))),
-              const Scaffold(
-                  body: Center(child: Text("Living/Lifestyle Preferences"))),
-              const Scaffold(body: Center(child: Text("Almost There!"))),
+              WelcomeAboardScreen(
+                onContinue: _handleContinue,
+                onBack: _handleBack,
+              ),
             ],
           ),
         );

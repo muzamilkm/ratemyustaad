@@ -275,7 +275,7 @@ class _OnboardingUniversityPreferencesScreenState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Progress indicator
+                        // Progress indicator                        
                         Container(
                           width: double.infinity,
                           height: 6,
@@ -287,7 +287,7 @@ class _OnboardingUniversityPreferencesScreenState
                             children: [
                               Container(
                                 width: MediaQuery.of(context).size.width *
-                                    0.40, // 3/8 steps completed
+                                    0.6, // Changed from 0.40 to 0.6 (3/5)
                                 decoration: BoxDecoration(
                                   color: primaryColor,
                                   borderRadius: BorderRadius.circular(8),
