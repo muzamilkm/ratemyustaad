@@ -32,6 +32,7 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
   // Form controllers
   final _teacherNameController = TextEditingController();
   final _departmentController = TextEditingController();
+  final _institutionController = TextEditingController();
   final _reviewTextController = TextEditingController();
   final _courseCodeController = TextEditingController();
   final _courseNameController = TextEditingController();
@@ -72,6 +73,7 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
     if (widget.teacher != null) {
       _teacherNameController.text = widget.teacher!.name;
       _departmentController.text = widget.teacher!.department;
+      _institutionController.text = widget.teacher!.institution;
     } else if (widget.teacherName != null && widget.department != null) {
       _teacherNameController.text = widget.teacherName!;
       _departmentController.text = widget.department!;
@@ -82,6 +84,7 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
   void dispose() {
     _teacherNameController.dispose();
     _departmentController.dispose();
+    _institutionController.dispose();
     _reviewTextController.dispose();
     _courseCodeController.dispose();
     _courseNameController.dispose();
@@ -101,6 +104,7 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
           text: _reviewTextController.text,
           rating: _overallRating,
           ratingBreakdown: _ratingBreakdown,
+          institution: _institutionController.text,
           courseCode: _courseCodeController.text,
           courseName: _courseNameController.text,
           tags: _selectedTags,
@@ -145,6 +149,11 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
     
     if (_departmentController.text.isEmpty) {
       _showError('Please enter department');
+      return false;
+    }
+    
+    if (_institutionController.text.isEmpty) {
+      _showError('Please enter university/institution');
       return false;
     }
     
@@ -252,6 +261,13 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
                       controller: _departmentController,
                       label: "Department",
                       hint: "e.g., Computer Science, Electrical Engineering",
+                      readOnly: widget.teacher != null,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildTextField(
+                      controller: _institutionController,
+                      label: "University/Institution",
+                      hint: "e.g., Harvard University, MIT",
                       readOnly: widget.teacher != null,
                     ),
                     const SizedBox(height: 12),

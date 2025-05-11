@@ -12,6 +12,8 @@ import 'screens/auth/email_signup_screen.dart';
 import 'screens/auth/forgot_password_screen.dart';
 import 'screens/reviews/review_submit_screen.dart';
 import 'screens/search/teacher_search_screen.dart';
+import 'screens/search/advanced_search_screen.dart';
+import 'screens/search/departments_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'services/onboarding_flow.dart';
 import 'utils/onboarding_helper.dart';
@@ -51,6 +53,8 @@ class RateMyUstaadApp extends StatelessWidget {
       '/forgot-password': (context) => const ForgotPasswordScreen(),
       '/home': (context) => const HomeScreen(),
       '/search': (context) => const TeacherSearchScreen(),
+      '/search/advanced': (context) => const AdvancedSearchScreen(),
+      '/search/departments': (context) => const DepartmentsScreen(),
       '/review/new': (context) => const ReviewSubmitScreen(),
       '/profile': (context) => const ProfileScreen(),
       '/onboarding': (context) => OnboardingFlow(

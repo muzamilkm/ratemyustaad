@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/teacher.dart';
 import '../models/review.dart';
+import 'search_utils.dart';
 
 class TeacherService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -101,6 +102,7 @@ class TeacherService {
     required String text,
     required double rating,
     required Map<String, double> ratingBreakdown,
+    String? institution,
     String? courseCode,
     String? courseName,
     List<String> tags = const [],
@@ -121,6 +123,7 @@ class TeacherService {
       final teacher = await saveTeacher(
         teacherName, 
         teacherDepartment,
+        institution: institution,
       );
       
       // Create review
@@ -286,30 +289,126 @@ class TeacherService {
     }
   }
   
-  // Search for teachers
-  Future<List<Teacher>> searchTeachers(String query, {int limit = 20}) async {
+  // Get all unique departments
+  Future<List<String>> getAllDepartments() async {
     try {
-      // This is a simple implementation that can be improved with a proper search index
-      // For production, consider using a service like Algolia or Firebase Extension for search
-      final queryLower = query.toLowerCase();
-      
-      // Get all teachers - this could be paginated or filtered further in a real app
       final querySnapshot = await _teachersCollection.get();
       
-      // Filter in memory - not efficient for large datasets
-      final results = querySnapshot.docs
-          .map((doc) => Teacher.fromMap(doc.data() as Map<String, dynamic>, doc.id))
-          .where((teacher) => 
-              teacher.name.toLowerCase().contains(queryLower) ||
-              teacher.department.toLowerCase().contains(queryLower) ||
-              teacher.institution.toLowerCase().contains(queryLower))
-          .take(limit)
+      // Extract departments and remove duplicates using a Set
+      final departments = querySnapshot.docs
+          .map((doc) => (doc.data() as Map<String, dynamic>)['department'] as String)
+          .where((dept) => dept.isNotEmpty)
+          .toSet()
           .toList();
-          
-      return results;
+      
+      // Sort alphabetically
+      departments.sort();
+      
+      // Add debug information
+      print('DEPTS: Found ${departments.length} unique departments');
+      if (departments.isNotEmpty) {
+        print('DEPTS: Sample departments: ${departments.take(5).toList()}');
+      }
+      
+      return departments;
     } catch (e) {
-      print('Error searching teachers: $e');
+      print('Error getting departments: $e');
       return [];
     }
+  }
+
+  // Get all unique institutions
+  Future<List<String>> getAllInstitutions() async {
+    try {
+      final querySnapshot = await _teachersCollection.get();
+      
+      // Extract institutions and remove duplicates using a Set
+      final institutions = querySnapshot.docs
+          .map((doc) => (doc.data() as Map<String, dynamic>)['institution'] as String)
+          .where((inst) => inst.isNotEmpty)
+          .toSet()
+          .toList();
+      
+      // Sort alphabetically
+      institutions.sort();
+      
+      return institutions;
+    } catch (e) {
+      print('Error getting institutions: $e');
+      return [];
+    }
+  }
+
+  // Get all unique tags from reviews
+  Future<List<String>> getAllTags({int limit = 30}) async {
+    try {
+      final querySnapshot = await _reviewsCollection
+          .orderBy('timestamp', descending: true)
+          .limit(200) // Sample a reasonable number of recent reviews
+          .get();
+      
+      // Extract all tags
+      final allTagsList = querySnapshot.docs.expand((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        final tags = data['tags'] as List<dynamic>? ?? [];
+        return tags.map((tag) => tag.toString());
+      }).toList();
+
+      // Count occurrences of each tag
+      final Map<String, int> tagCount = {};
+      for (final tag in allTagsList) {
+        tagCount[tag] = (tagCount[tag] ?? 0) + 1;
+      }
+
+      // Sort by frequency
+      final sortedTags = tagCount.keys.toList()
+        ..sort((a, b) => tagCount[b]!.compareTo(tagCount[a]!));
+      
+      // Return top N most frequent tags
+      return sortedTags.take(limit).toList();
+    } catch (e) {
+      print('Error getting tags: $e');
+      return [];
+    }
+  }
+  
+  // Enhanced search with filtering and sorting
+  Future<List<Teacher>> advancedSearch({
+    String query = '',
+    String? department,
+    String? institution,
+    double? minRating,
+    List<String>? tags,
+    String sortBy = 'rating', // Options: 'rating', 'name', 'reviewCount'
+    bool descending = true,
+    int limit = 20,
+  }) async {
+    try {
+      print('SEARCH: Starting advanced search with params:');
+      print('SEARCH: query="$query", department="$department", institution="$institution"');
+      print('SEARCH: minRating=$minRating, tags=$tags, sortBy=$sortBy, descending=$descending');
+      
+      // Use the enhanced search from search_utils.dart
+      return await SearchUtils.enhancedSearch(
+        teachersCollection: _teachersCollection,
+        reviewsCollection: _reviewsCollection,
+        query: query.trim(),
+        department: department?.trim(),
+        institution: institution?.trim(),
+        minRating: minRating,
+        tags: tags,
+        sortBy: sortBy,
+        descending: descending,
+        limit: limit,
+      );
+    } catch (e) {
+      print('Error in advanced search: $e');
+      return [];
+    }
+  }
+  
+  // Search for teachers (basic search - maintained for backward compatibility)
+  Future<List<Teacher>> searchTeachers(String query, {int limit = 20}) async {
+    return advancedSearch(query: query, limit: limit);
   }
 }
