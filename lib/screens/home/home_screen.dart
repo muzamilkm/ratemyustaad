@@ -2,7 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../providers/auth_provider.dart' as app_auth;
+import '../../models/teacher.dart';
+import '../../models/review.dart';
+import '../../services/teacher_service.dart';
+import '../reviews/teacher_detail_screen.dart';
+import '../reviews/review_submit_screen.dart';
+import '../search/teacher_search_screen.dart';
+
+// TEMPORARY FIX: Simplified queries to work around missing Firestore composite indexes
+// TODO: Once the following indexes are created, revert to original queries:
+// 1. collection:teachers / fields: reviewCount (ASC), averageRating (DESC), __name__ (DESC)
+// 2. collection:reviews / fields: userId (ASC), timestamp (DESC), __name__ (DESC)
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -157,7 +169,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Search Card
                 GestureDetector(
                   onTap: () {
-                    // Navigate to search page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const TeacherSearchScreen(),
+                      ),
+                    );
                   },
                   child: Container(
                     height: 60,
@@ -220,7 +237,12 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: primaryColor,
         onPressed: () {
-          // Navigate to add review page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const ReviewSubmitScreen(),
+            ),
+          );
         },
         child: const Icon(Icons.rate_review, color: Colors.white),
       ),
@@ -230,8 +252,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildTopInstructorsList() {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
-          .collection('instructors')
+          .collection('teachers')
+          .where('reviewCount', isGreaterThan: 0)
+          // Updated order to match the index mentioned in the error message
           .orderBy('averageRating', descending: true)
+          .orderBy('reviewCount', descending: true)
+          .orderBy('__name__', descending: true)
           .limit(5)
           .snapshots(),
       builder: (context, snapshot) {
@@ -255,12 +281,18 @@ class _HomeScreenState extends State<HomeScreen> {
             final doc = snapshot.data!.docs[index];
             final data = doc.data() as Map<String, dynamic>;
             
+            final teacher = Teacher.fromMap(data, doc.id);
+            
             return InstructorCard(
-              id: doc.id,
-              name: data['name'] ?? 'Unknown Instructor',
-              department: data['department'] ?? 'Unknown Department',
-              imageUrl: data['imageUrl'],
-              rating: (data['averageRating'] as num?)?.toDouble() ?? 0.0,
+              teacher: teacher,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TeacherDetailScreen(teacher: teacher),
+                  ),
+                );
+              },
             );
           },
         );
@@ -269,11 +301,18 @@ class _HomeScreenState extends State<HomeScreen> {
   }
   
   Widget _buildRecentReviewsList() {
+    // Only show reviews for the current user
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      return _buildEmptyListWidget('Please sign in to see your reviews');
+    }
+    
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('reviews')
+          // Simplified query - we'll filter by userId client-side temporarily
           .orderBy('timestamp', descending: true)
-          .limit(10)
+          .limit(50) // Increased limit to ensure we capture user's reviews
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -281,29 +320,65 @@ class _HomeScreenState extends State<HomeScreen> {
         }
         
         if (snapshot.hasError) {
-          return _buildErrorWidget('Error loading recent reviews');
+          return _buildErrorWidget('Error loading your reviews');
         }
         
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return _buildEmptyListWidget('No reviews yet');
+          return _buildEmptyListWidget('You haven\'t posted any reviews yet');
+        }
+        
+        // Client-side filtering for user's reviews
+        final filteredDocs = snapshot.data!.docs.where((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return data['userId'] == currentUser.uid;
+        }).toList();
+        
+        if (filteredDocs.isEmpty) {
+          return _buildEmptyListWidget('You haven\'t posted any reviews yet');
         }
         
         // Build the list with actual data
         return ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: snapshot.data!.docs.length,
+          itemCount: filteredDocs.length,
           itemBuilder: (context, index) {
-            final doc = snapshot.data!.docs[index];
+            final doc = filteredDocs[index];
             final data = doc.data() as Map<String, dynamic>;
             
-            return ReviewCard(
-              id: doc.id,
-              instructorName: data['instructorName'] ?? 'Unknown Instructor',
-              reviewText: data['text'] ?? 'No review text',
-              rating: (data['rating'] as num?)?.toDouble() ?? 0.0,
-              reviewerName: data['reviewerName'] ?? 'Anonymous',
-              timestamp: (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
+            final review = Review.fromMap(data, doc.id);
+            
+            // Fetch teacher for this review
+            return FutureBuilder<DocumentSnapshot>(
+              future: FirebaseFirestore.instance
+                  .collection('teachers')
+                  .doc(review.teacherId)
+                  .get(),
+              builder: (context, teacherSnapshot) {
+                Teacher? teacher;
+                
+                if (teacherSnapshot.hasData && teacherSnapshot.data!.exists) {
+                  teacher = Teacher.fromMap(
+                    teacherSnapshot.data!.data() as Map<String, dynamic>,
+                    teacherSnapshot.data!.id,
+                  );
+                }
+                
+                return ReviewCard(
+                  review: review,
+                  teacher: teacher,
+                  onTap: () {
+                    if (teacher != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TeacherDetailScreen(teacher: teacher!),
+                        ),
+                      );
+                    }
+                  },
+                );
+              },
             );
           },
         );
@@ -362,27 +437,19 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class InstructorCard extends StatelessWidget {
-  final String id;
-  final String name;
-  final String department;
-  final String? imageUrl;
-  final double rating;
+  final Teacher teacher;
+  final VoidCallback onTap;
   
   const InstructorCard({
     super.key,
-    required this.id,
-    required this.name,
-    required this.department,
-    this.imageUrl,
-    required this.rating,
+    required this.teacher,
+    required this.onTap,
   });
   
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        // Navigate to instructor detail page
-      },
+      onTap: onTap,
       child: Container(
         width: 160,
         margin: const EdgeInsets.only(right: 16),
@@ -405,10 +472,10 @@ class InstructorCard extends StatelessWidget {
             CircleAvatar(
               radius: 40,
               backgroundColor: const Color(0xFFEEE5FF),
-              backgroundImage: imageUrl != null ? NetworkImage(imageUrl!) : null,
-              child: imageUrl == null
+              backgroundImage: teacher.photoUrl.isNotEmpty ? NetworkImage(teacher.photoUrl) : null,
+              child: teacher.photoUrl.isEmpty
                   ? Text(
-                      name.isNotEmpty ? name[0] : '?',
+                      teacher.name.isNotEmpty ? teacher.name[0] : '?',
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -422,7 +489,7 @@ class InstructorCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Text(
-                name,
+                teacher.name,
                 style: const TextStyle(
                   fontFamily: 'Manrope',
                   fontSize: 16,
@@ -439,7 +506,7 @@ class InstructorCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Text(
-                department,
+                teacher.department,
                 style: const TextStyle(
                   fontFamily: 'Manrope',
                   fontSize: 12,
@@ -457,9 +524,9 @@ class InstructorCard extends StatelessWidget {
               children: [
                 ...List.generate(5, (index) {
                   return Icon(
-                    index < rating.floor() 
+                    index < teacher.averageRating.floor() 
                         ? Icons.star 
-                        : (index < rating 
+                        : (index < teacher.averageRating 
                             ? Icons.star_half 
                             : Icons.star_border),
                     color: const Color(0xFFFFD700),
@@ -468,7 +535,7 @@ class InstructorCard extends StatelessWidget {
                 }),
                 const SizedBox(width: 4),
                 Text(
-                  rating.toStringAsFixed(1),
+                  teacher.averageRating.toStringAsFixed(1),
                   style: const TextStyle(
                     fontFamily: 'Manrope',
                     fontSize: 12,
@@ -486,29 +553,21 @@ class InstructorCard extends StatelessWidget {
 }
 
 class ReviewCard extends StatelessWidget {
-  final String id;
-  final String instructorName;
-  final String reviewText;
-  final double rating;
-  final String reviewerName;
-  final DateTime timestamp;
+  final Review review;
+  final Teacher? teacher;
+  final VoidCallback onTap;
   
   const ReviewCard({
     super.key,
-    required this.id,
-    required this.instructorName,
-    required this.reviewText,
-    required this.rating,
-    required this.reviewerName,
-    required this.timestamp,
+    required this.review,
+    this.teacher,
+    required this.onTap,
   });
   
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        // Navigate to review detail page
-      },
+      onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
@@ -534,7 +593,7 @@ class ReviewCard extends StatelessWidget {
                     radius: 20,
                     backgroundColor: const Color(0xFFEEE5FF),
                     child: Text(
-                      reviewerName.isNotEmpty ? reviewerName[0] : '?',
+                      review.userName.isNotEmpty ? review.userName[0].toUpperCase() : 'A',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -548,7 +607,7 @@ class ReviewCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          reviewerName,
+                          review.isAnonymous ? 'Anonymous' : review.userName,
                           style: const TextStyle(
                             fontFamily: 'Manrope',
                             fontSize: 16,
@@ -557,7 +616,7 @@ class ReviewCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'About ${instructorName}',
+                          'About ${review.teacherName}',
                           style: const TextStyle(
                             fontFamily: 'Manrope',
                             fontSize: 12,
@@ -572,9 +631,9 @@ class ReviewCard extends StatelessWidget {
                     children: [
                       ...List.generate(5, (index) {
                         return Icon(
-                          index < rating.floor() 
+                          index < review.rating.floor() 
                               ? Icons.star 
-                              : (index < rating 
+                              : (index < review.rating 
                                   ? Icons.star_half 
                                   : Icons.star_border),
                           color: const Color(0xFFFFD700),
@@ -588,7 +647,7 @@ class ReviewCard extends StatelessWidget {
               const SizedBox(height: 12),
               // Review Text
               Text(
-                reviewText,
+                review.text,
                 style: const TextStyle(
                   fontFamily: 'Manrope',
                   fontSize: 14,
@@ -598,12 +657,26 @@ class ReviewCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 8),
+              // Course info
+              if (review.courseCode.isNotEmpty || review.courseName.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Text(
+                    '${review.courseCode}${review.courseCode.isNotEmpty && review.courseName.isNotEmpty ? ' - ' : ''}${review.courseName}',
+                    style: const TextStyle(
+                      fontFamily: 'Manrope',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: _HomeScreenState.hintTextColor,
+                    ),
+                  ),
+                ),
               // Timestamp
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    _formatTimestamp(timestamp),
+                    _formatTimestamp(review.timestamp),
                     style: const TextStyle(
                       fontFamily: 'Manrope',
                       fontSize: 12,
