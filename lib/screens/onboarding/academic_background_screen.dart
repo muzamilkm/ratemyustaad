@@ -27,6 +27,15 @@ class _OnboardingAcademicBackgroundScreenState
   String? _degreeProgram;
   String? _studyLevel;
   String? _fieldOfStudy;
+  
+  // ValueNotifier to control the validation message visibility
+  final ValueNotifier<bool> _showValidationMessage = ValueNotifier<bool>(false);
+
+  @override
+  void dispose() {
+    _showValidationMessage.dispose();
+    super.dispose();
+  }
 
   final List<String> _educationLevels = [
     'High School',
@@ -144,32 +153,47 @@ class _OnboardingAcademicBackgroundScreenState
     required String hintText,
     required void Function(String) onChanged,
   }) {
-    return Container(
-      height: 50,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: borderColor),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: TextFormField(
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: hintStyle,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          border: InputBorder.none,
-          isDense: true,
+    return TextFormField(
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: hintStyle,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: borderColor),
         ),
-        style: inputTextStyle,
-        onChanged: onChanged,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: borderColor),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: primaryColor),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.red.shade200),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.red.shade400),
+        ),
+        filled: true,
+        fillColor: Colors.white,
+        isDense: true,
+        errorStyle: const TextStyle(
+          height: 0, // Hide error text but keep the space
+        ),
       ),
+      style: inputTextStyle,
+      onChanged: onChanged,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return ' '; // Non-null but empty message to indicate validation failure without showing text
+        }
+        return null;
+      },
     );
   }
 
@@ -179,47 +203,62 @@ class _OnboardingAcademicBackgroundScreenState
     required List<String> items,
     required Function(String?) onChanged,
   }) {
-    return Container(
-      height: 50,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: borderColor),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 4,
-            offset: Offset(0, 2),
+    return DropdownButtonFormField<String>(
+      value: value,
+      isExpanded: true,
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: hintStyle,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: borderColor),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: borderColor),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: primaryColor),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.red.shade200),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.red.shade400),
+        ),
+        filled: true,
+        fillColor: Colors.white,
+        isDense: true,
+        errorStyle: const TextStyle(
+          height: 0, // Hide error text but keep the space
+        ),
+      ),
+      icon: const Icon(
+        Icons.keyboard_arrow_down,
+        color: hintTextColor,
+      ),
+      style: inputTextStyle,
+      items: items.map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(
+            value,
+            overflow: TextOverflow.ellipsis,
           ),
-        ],
-      ),
-      child: DropdownButtonFormField<String>(
-        value: value,
-        isExpanded: true,
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: hintStyle,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          border: InputBorder.none,
-          isDense: true,
-        ),
-        icon: const Icon(
-          Icons.keyboard_arrow_down,
-          color: hintTextColor,
-        ),
-        style: inputTextStyle,
-        items: items.map<DropdownMenuItem<String>>((String value) {
-          return DropdownMenuItem<String>(
-            value: value,
-            child: Text(
-              value,
-              overflow: TextOverflow.ellipsis,
-            ),
-          );
-        }).toList(),
-        onChanged: onChanged,
-      ),
+        );
+      }).toList(),
+      onChanged: onChanged,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return ' '; // Non-null but empty message to indicate validation failure without showing text
+        }
+        return null;
+      },
     );
   }
 
@@ -235,20 +274,7 @@ class _OnboardingAcademicBackgroundScreenState
               color: darkTextColor, size: 20),
           onPressed: widget.onBack,
         ),
-        actions: [
-          TextButton(
-            onPressed: widget.onSkip,
-            child: const Text(
-              "Skip",
-              style: TextStyle(
-                color: primaryColor,
-                fontFamily: 'Manrope',
-                fontWeight: FontWeight.w500,
-                fontSize: 16,
-              ),
-            ),
-          ),
-        ],
+        // Skip button removed for mandatory screen
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -289,7 +315,40 @@ class _OnboardingAcademicBackgroundScreenState
                     "We'll ask you a few questions to tailor your experience",
                     style: subheadingStyle,
                   ),
-                  const SizedBox(height: 32),
+                  
+                  // Validation message container - initially hidden
+                  ValueListenableBuilder<bool>(
+                    valueListenable: _showValidationMessage,
+                    builder: (context, showMessage, child) {
+                      return showMessage
+                          ? Container(
+                              margin: const EdgeInsets.only(top: 16, bottom: 16),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.red.shade200),
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(Icons.info_outline, color: Colors.red),
+                                  SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      "Please fill all the fields below to continue",
+                                      style: TextStyle(
+                                        fontFamily: 'Manrope',
+                                        fontSize: 14,
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : const SizedBox(height: 32);
+                    },
+                  ),
 
                   // Education Level field
                   _buildInputField(
@@ -381,7 +440,18 @@ class _OnboardingAcademicBackgroundScreenState
                     ),
                     child: ElevatedButton(
                       onPressed: () {
-                        if (_formKey.currentState!.validate()) {
+                        bool allFieldsFilled = _formKey.currentState!.validate() && 
+                                              _educationLevel != null && 
+                                              _currentStatus != null && 
+                                              _degreeProgram != null && 
+                                              _studyLevel != null && 
+                                              _fieldOfStudy != null && 
+                                              _fieldOfStudy!.isNotEmpty;
+                                              
+                        if (allFieldsFilled) {
+                          // All fields are valid, hide validation message if it was showing
+                          _showValidationMessage.value = false;
+
                           final onboardingProvider =
                               Provider.of<OnboardingProvider>(context,
                                   listen: false);
@@ -396,6 +466,9 @@ class _OnboardingAcademicBackgroundScreenState
                           );
 
                           widget.onContinue();
+                        } else {
+                          // Show validation message
+                          _showValidationMessage.value = true;
                         }
                       },
                       style: ElevatedButton.styleFrom(

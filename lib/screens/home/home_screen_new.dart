@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart' as app_auth;
+import '../../providers/auth_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,6 +16,7 @@ class _HomeScreenState extends State<HomeScreen> {
   static const primaryColor = Color(0xFF5E17EB);
   static const darkTextColor = Color(0xFF01242D);
   static const hintTextColor = Color(0xFF708090);
+  static const borderColor = Color(0xFFCBD5E1);
   static const backgroundColor = Color(0xFFF0F8FF);
   static const cardColor = Colors.white;
   
@@ -123,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ) ?? false;
               
               if (confirmed && mounted) {
-                final authProvider = Provider.of<app_auth.AuthProvider>(context, listen: false);
+                final authProvider = Provider.of<AuthProvider>(context, listen: false);
                 await authProvider.signOut();
                 if (mounted) {
                   Navigator.of(context).pushReplacementNamed('/landing');

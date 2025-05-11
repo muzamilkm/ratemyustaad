@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import 'package:flutter/services.dart';
 import '../../utils/onboarding_helper.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class EmailSignupScreen extends StatefulWidget {
   const EmailSignupScreen({super.key});
@@ -378,20 +377,14 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
 
                                         if (success && context.mounted) {
                                           ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            const SnackBar(
+                                              .showSnackBar(                                            const SnackBar(
                                               content: Text(
                                                   'Account created successfully!'),
                                               backgroundColor: Colors.green,
                                             ),
                                           );
 
-                                          // Clear onboarding flag for new users
-                                          final prefs = await SharedPreferences
-                                              .getInstance();
-                                          await prefs.remove(
-                                              OnboardingHelper.onboardingKey);
-
+                                          // Check onboarding status from Firestore for new users
                                           final completed =
                                               await OnboardingHelper
                                                   .isOnboardingCompleted();
@@ -525,16 +518,33 @@ class _EmailSignupScreenState extends State<EmailSignupScreen> {
                         // Show loading state
                         setState(() {
                           _isCreatingAccount = true;
-                        });
-
-                        try {
+                        });                        try {
                           final authProvider =
                               Provider.of<AuthProvider>(context, listen: false);
-                          final success = await authProvider.signInWithGoogle();
-
-                          if (success && mounted) {
-                            // Navigate to home screen on success
-                            Navigator.of(context).pushReplacementNamed('/home');
+                          final success = await authProvider.signInWithGoogle();                          if (success && mounted) {
+                            // Reset loading state
+                            setState(() {
+                              _isCreatingAccount = false;
+                            });
+                            
+                            // Show success message
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content:
+                                    Text('Successfully signed in with Google!'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                            
+                            // Check if onboarding is completed
+                            final completed = await OnboardingHelper.isOnboardingCompleted();
+                            if (!completed) {
+                              // If onboarding not completed, navigate to onboarding flow
+                              Navigator.of(context).pushReplacementNamed('/onboarding');
+                            } else {
+                              // If onboarding completed, navigate to home screen
+                              Navigator.of(context).pushReplacementNamed('/home');
+                            }
                           } else if (mounted) {
                             // Reset loading state if sign-in was unsuccessful or canceled
                             setState(() {

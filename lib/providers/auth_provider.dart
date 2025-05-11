@@ -38,19 +38,20 @@ class AuthProvider extends ChangeNotifier {
       return false;
     }
   }
-  
-  // Sign in with Google
+    // Sign in with Google
   Future<bool> signInWithGoogle() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
     
     try {
-      final userCredential = await _authService.signInWithGoogle();
+      final userCredential = await _authService.signInWithGoogle();      // If user canceled the sign-in process, userCredential will be null
+      if (userCredential != null) {
+        // We have a signed-in user (onboarding status will be checked via Firestore)
+      }
+      
       _isLoading = false;
       notifyListeners();
-      
-      // If user canceled the sign-in process, userCredential will be null
       return userCredential != null;
     } on FirebaseAuthException catch (e) {
       _handleAuthError(e);

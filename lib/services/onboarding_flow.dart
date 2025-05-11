@@ -94,16 +94,15 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         return Scaffold(
           body: PageView(
             controller: _pageController,
-            physics: const NeverScrollableScrollPhysics(),
-            children: [
+            physics: const NeverScrollableScrollPhysics(),            children: [
               OnboardingGetStartedScreen(
                 onContinue: _handleContinue,
-                onSkip: _handleSkip,
+                onSkip: _handleSkip, // Skip button is hidden in UI but we keep the prop
                 onBack: _handleBack,
               ),
               OnboardingAcademicBackgroundScreen(
                 onContinue: _handleContinue,
-                onSkip: _handleSkip,
+                onSkip: _handleSkip, // Skip button is hidden in UI but we keep the prop
                 onBack: _handleBack,
               ),
               OnboardingUniversityPreferencesScreen(

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/onboarding_helper.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -47,11 +48,18 @@ class _SplashScreenState extends State<SplashScreen> {
           overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom]);
           
       // Navigate to appropriate screen after a delay
-      Timer(const Duration(seconds: 3), () {
+      Timer(const Duration(seconds: 3), () async {
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
         if (authProvider.isAuthenticated) {
-          // Navigate to home screen if user is logged in
-          Navigator.pushReplacementNamed(context, '/home');
+          // Check if onboarding is completed for the authenticated user
+          final completed = await OnboardingHelper.isOnboardingCompleted();
+          if (!completed) {
+            // Navigate to onboarding flow if needed
+            Navigator.pushReplacementNamed(context, '/onboarding');
+          } else {
+            // Navigate to home screen if onboarding is completed
+            Navigator.pushReplacementNamed(context, '/home');
+          }
         } else {
           // Navigate to landing page if user is not logged in
           Navigator.pushReplacementNamed(context, '/landing');

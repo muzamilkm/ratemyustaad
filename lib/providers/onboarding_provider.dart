@@ -122,8 +122,7 @@ class OnboardingProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-  
-  // Save all user data to Firestore
+    // Save all user data to Firestore
   Future<bool> saveUserData() async {
     if (_auth.currentUser == null) return false;
     
@@ -138,24 +137,29 @@ class OnboardingProvider extends ChangeNotifier {
       userMap['userId'] = _auth.currentUser!.uid;
       userMap['createdAt'] = FieldValue.serverTimestamp();
       
+      // Debug: Print the data being saved to help with debugging
+      print('Saving user data to Firestore: ${userMap.keys.join(', ')}');
+      
       await _firestore
           .collection('users')
           .doc(_auth.currentUser!.uid)
           .set(userMap, SetOptions(merge: true));
+      
+      print('Successfully saved user data to Firestore');
       
       _onboardingCompleted = true;
       _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
+      print('Error saving user data to Firestore: $e');
       _error = e.toString();
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
-  
-  // Skip onboarding
+    // Skip onboarding
   Future<bool> skipOnboarding() async {
     if (_auth.currentUser == null) return false;
     
@@ -163,22 +167,30 @@ class OnboardingProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
     
-    try {
+    try {      // Even when skipping, we save the partial user data that has been collected
+      final userMap = _userData.toMap();
+      userMap['onboardingCompleted'] = true;
+      userMap['email'] = _auth.currentUser!.email;
+      userMap['userId'] = _auth.currentUser!.uid;
+      userMap['createdAt'] = FieldValue.serverTimestamp();
+      userMap['skippedOnboarding'] = true; // Add a flag to indicate onboarding was skipped
+      
+      // Debug: Print the data being saved
+      print('Skipping onboarding, saving partial data: ${userMap.keys.join(', ')}');
+      
       await _firestore
           .collection('users')
           .doc(_auth.currentUser!.uid)
-          .set({
-            'onboardingCompleted': true,
-            'email': _auth.currentUser!.email,
-            'userId': _auth.currentUser!.uid,
-            'createdAt': FieldValue.serverTimestamp(),
-          }, SetOptions(merge: true));
+          .set(userMap, SetOptions(merge: true));
+      
+      print('Successfully saved partial user data on skip');
       
       _onboardingCompleted = true;
       _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
+      print('Error saving user data on skip: $e');
       _error = e.toString();
       _isLoading = false;
       notifyListeners();

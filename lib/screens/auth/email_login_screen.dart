@@ -515,14 +515,15 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                         // Show loading state
                         setState(() {
                           _isLoggingIn = true;
-                        });
-
-                        try {
+                        });                        try {
                           final authProvider =
                               Provider.of<AuthProvider>(context, listen: false);
-                          final success = await authProvider.signInWithGoogle();
-
-                          if (success && mounted) {
+                          final success = await authProvider.signInWithGoogle();                          if (success && mounted) {
+                            // Reset loading state
+                            setState(() {
+                              _isLoggingIn = false;
+                            });
+                            
                             // Show success message
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
@@ -532,8 +533,15 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                               ),
                             );
 
-                            // Navigate to home screen on success
-                            Navigator.of(context).pushReplacementNamed('/home');
+                            // Check if onboarding is completed
+                            final completed = await OnboardingHelper.isOnboardingCompleted();
+                            if (!completed) {
+                              // If onboarding not completed, navigate to onboarding flow
+                              Navigator.of(context).pushReplacementNamed('/onboarding');
+                            } else {
+                              // If onboarding completed, navigate to home screen
+                              Navigator.of(context).pushReplacementNamed('/home');
+                            }
                           } else if (mounted) {
                             // Reset loading state if sign-in was unsuccessful or canceled
                             setState(() {
