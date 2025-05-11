@@ -296,12 +296,10 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                             ),
                           ),
                         ],
-                      ),
-
-                      // Forgot password link
+                      ),                      // Forgot password link
                       GestureDetector(
                         onTap: () {
-                          _showForgotPasswordDialog(context);
+                          Navigator.of(context).pushNamed('/forgot-password');
                         },
                         child: const Text(
                           "Forgot password?",
@@ -700,79 +698,5 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  // Existing dialog for password reset
-  void _showForgotPasswordDialog(BuildContext context) {
-    final TextEditingController emailController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Reset Password'),
-          content: Form(
-            key: formKey,
-            child: TextFormField(
-              controller: emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                hintText: 'Enter your email',
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter your email';
-                }
-                if (!value.contains('@')) {
-                  return 'Please enter a valid email';
-                }
-                return null;
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            Consumer<AuthProvider>(
-              builder: (context, authProvider, _) {
-                return TextButton(
-                  onPressed: () async {
-                    if (formKey.currentState!.validate()) {
-                      await authProvider
-                          .resetPassword(emailController.text.trim());
-                      if (context.mounted) {
-                        Navigator.of(context).pop();
-
-                        // Show message
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              authProvider.error != null
-                                  ? authProvider.error!
-                                  : 'Password reset email sent. Check your inbox.',
-                            ),
-                            backgroundColor: authProvider.error != null
-                                ? Colors.red
-                                : Colors.green,
-                          ),
-                        );
-                      }
-                    }
-                  },
-                  child: const Text('Send Reset Link'),
-                );
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
+    );  }
 }

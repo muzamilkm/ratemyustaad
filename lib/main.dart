@@ -9,6 +9,7 @@ import 'screens/splash/splash_screen.dart';
 import 'screens/auth/landing_page.dart';
 import 'screens/auth/email_login_screen.dart';
 import 'screens/auth/email_signup_screen.dart';
+import 'screens/auth/forgot_password_screen.dart';
 import 'screens/reviews/review_submit_screen.dart';
 import 'screens/search/teacher_search_screen.dart';
 import 'screens/profile/profile_screen.dart';
@@ -44,8 +45,10 @@ class RateMyUstaadApp extends StatelessWidget {
       fontFamily: 'Manrope',
     ),
     home: const SplashScreen(),    routes: {
-      '/landing': (context) => const LandingPage(),      '/login': (context) => const EmailLoginScreen(),
+      '/landing': (context) => const LandingPage(),      
+      '/login': (context) => const EmailLoginScreen(),
       '/signup': (context) => const EmailSignupScreen(),
+      '/forgot-password': (context) => const ForgotPasswordScreen(),
       '/home': (context) => const HomeScreen(),
       '/search': (context) => const TeacherSearchScreen(),
       '/review/new': (context) => const ReviewSubmitScreen(),
