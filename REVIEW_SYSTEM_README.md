@@ -15,6 +15,12 @@
   - Calculating and updating teacher ratings
   - Search functionality for teachers
 
+- **User Service** (`lib/services/user_service.dart`)
+  - User profile management
+  - Retrieving and updating user data
+  - Email and password management
+  - User reviews retrieval
+
 ### 3. User Interface
 - **Review Submission Screen** (`lib/screens/reviews/review_submit_screen.dart`)
   - Modern UI matching app design language
@@ -26,6 +32,12 @@
   - Teacher profile with ratings summary
   - Rating breakdown by category
   - List of reviews with helpful voting
+  
+- **User Profile Screens** (`lib/screens/profile/*.dart`)
+  - User information display and editing
+  - Email and password management
+  - List of user's reviews with quick navigation
+  - Account settings management
   
 - **Teacher Search Screen** (`lib/screens/search/teacher_search_screen.dart`)
   - Real-time search as you type
@@ -44,6 +56,7 @@
    - View top-rated teachers and recent reviews
    - Tap on the search bar to search for teachers
    - Tap on the floating action button to add a new review
+   - Tap on the profile icon in the app bar to access your profile
 
 3. **Search for Teachers**:
    - Enter a teacher name or department
@@ -64,11 +77,19 @@
    - Toggle anonymity option
    - Submit the review
 
+6. **Manage Your Profile**:
+   - View your personal information
+   - Edit your name and other profile details
+   - Change your email or password securely
+   - View all your submitted reviews
+   - Navigate to teacher details from your reviews
+
 ## Next Steps and Future Enhancements
 
-1. **User Profiles**:
-   - Create user profile screen
-   - Allow users to view and manage their reviews
+1. ~~**User Profiles**~~: ✅ Implemented
+   - ~~Create user profile screen~~
+   - ~~Allow users to view and manage their reviews~~
+   - ~~Edit user information, email, and password~~
 
 2. **Department Filtering**:
    - Add ability to filter teachers by department

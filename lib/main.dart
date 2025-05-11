@@ -9,10 +9,9 @@ import 'screens/splash/splash_screen.dart';
 import 'screens/auth/landing_page.dart';
 import 'screens/auth/email_login_screen.dart';
 import 'screens/auth/email_signup_screen.dart';
-import 'screens/onboarding/get_started_screen.dart';
-import 'screens/onboarding/academic_background_screen.dart';
 import 'screens/reviews/review_submit_screen.dart';
 import 'screens/search/teacher_search_screen.dart';
+import 'screens/profile/profile_screen.dart';
 import 'services/onboarding_flow.dart';
 import 'utils/onboarding_helper.dart';
 
@@ -45,12 +44,12 @@ class RateMyUstaadApp extends StatelessWidget {
       fontFamily: 'Manrope',
     ),
     home: const SplashScreen(),    routes: {
-      '/landing': (context) => const LandingPage(),
-      '/login': (context) => const EmailLoginScreen(),
+      '/landing': (context) => const LandingPage(),      '/login': (context) => const EmailLoginScreen(),
       '/signup': (context) => const EmailSignupScreen(),
       '/home': (context) => const HomeScreen(),
       '/search': (context) => const TeacherSearchScreen(),
       '/review/new': (context) => const ReviewSubmitScreen(),
+      '/profile': (context) => const ProfileScreen(),
       '/onboarding': (context) => OnboardingFlow(
         onComplete: () {
           Navigator.of(context).pushReplacementNamed('/home');

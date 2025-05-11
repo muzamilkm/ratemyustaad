@@ -110,6 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.account_circle_outlined, color: darkTextColor),
             onPressed: () {
               // Navigate to profile page
+              Navigator.of(context).pushNamed('/profile');
             },
           ),
           IconButton(
@@ -254,7 +255,6 @@ class _HomeScreenState extends State<HomeScreen> {
       stream: FirebaseFirestore.instance
           .collection('teachers')
           .where('reviewCount', isGreaterThan: 0)
-          // Updated order to match the index mentioned in the error message
           .orderBy('averageRating', descending: true)
           .orderBy('reviewCount', descending: true)
           .orderBy('__name__', descending: true)
@@ -310,9 +310,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('reviews')
-          // Simplified query - we'll filter by userId client-side temporarily
+          .where('userId', isEqualTo: currentUser.uid)
           .orderBy('timestamp', descending: true)
-          .limit(50) // Increased limit to ensure we capture user's reviews
+          .limit(10)
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -327,23 +327,13 @@ class _HomeScreenState extends State<HomeScreen> {
           return _buildEmptyListWidget('You haven\'t posted any reviews yet');
         }
         
-        // Client-side filtering for user's reviews
-        final filteredDocs = snapshot.data!.docs.where((doc) {
-          final data = doc.data() as Map<String, dynamic>;
-          return data['userId'] == currentUser.uid;
-        }).toList();
-        
-        if (filteredDocs.isEmpty) {
-          return _buildEmptyListWidget('You haven\'t posted any reviews yet');
-        }
-        
         // Build the list with actual data
         return ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: filteredDocs.length,
+          itemCount: snapshot.data!.docs.length,
           itemBuilder: (context, index) {
-            final doc = filteredDocs[index];
+            final doc = snapshot.data!.docs[index];
             final data = doc.data() as Map<String, dynamic>;
             
             final review = Review.fromMap(data, doc.id);
