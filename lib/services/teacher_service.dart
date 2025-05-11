@@ -3,11 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/teacher.dart';
 import '../models/review.dart';
 
-// TEMPORARY FIX: Simplified queries to work around missing Firestore composite indexes
-// TODO: Once the following indexes are created, revert to original queries:
-// 1. collection:teachers / fields: reviewCount (ASC), averageRating (DESC), __name__ (DESC)
-// 2. collection:reviews / fields: userId (ASC), timestamp (DESC), __name__ (DESC)
-
 class TeacherService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -243,9 +238,8 @@ class TeacherService {
     try {
       final querySnapshot = await _teachersCollection
           .where('reviewCount', isGreaterThan: 0)
-          // Updated to match the index structure in the error message
           .orderBy('averageRating', descending: true)
-          .orderBy('reviewCount', descending: true) 
+          .orderBy('reviewCount', descending: true)
           .orderBy('__name__', descending: true)
           .limit(limit)
           .get();
