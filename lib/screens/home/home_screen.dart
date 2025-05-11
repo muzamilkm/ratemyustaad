@@ -7,6 +7,7 @@ import '../../providers/auth_provider.dart' as app_auth;
 import '../../models/teacher.dart';
 import '../../models/review.dart';
 import '../../services/teacher_service.dart';
+import '../../services/user_service.dart';
 import '../reviews/teacher_detail_screen.dart';
 import '../reviews/review_submit_screen.dart';
 import '../search/teacher_search_screen.dart';
@@ -30,6 +31,9 @@ class _HomeScreenState extends State<HomeScreen> {
   static const hintTextColor = Color(0xFF708090);
   static const backgroundColor = Color(0xFFF0F8FF);
   static const cardColor = Colors.white;
+  
+  // Service instances
+  final TeacherService _teacherService = TeacherService();
   
   // Text styles for reuse
   static const TextStyle headingStyle = TextStyle(

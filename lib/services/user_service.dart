@@ -27,19 +27,24 @@ class UserService {
   }
   
   // Get current user's reviews
-  Future<List<Review>> getUserReviews({int limit = 10}) async {
+  Future<List<Review>> getUserReviews({int limit = 10, DocumentSnapshot? startAfter}) async {
     try {
       final user = _auth.currentUser;
       if (user == null) {
         return [];
       }
       
-      final querySnapshot = await _firestore
+      Query query = _firestore
           .collection('reviews')
           .where('userId', isEqualTo: user.uid)
-          .orderBy('timestamp', descending: true)
-          .limit(limit)
-          .get();
+          .orderBy('timestamp', descending: true);
+          
+      // Apply pagination if startAfter document is provided
+      if (startAfter != null) {
+        query = query.startAfterDocument(startAfter);
+      }
+      
+      final querySnapshot = await query.limit(limit).get();
           
       return querySnapshot.docs
           .map((doc) => Review.fromMap(doc.data() as Map<String, dynamic>, doc.id))
