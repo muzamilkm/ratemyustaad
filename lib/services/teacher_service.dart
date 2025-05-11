@@ -211,14 +211,20 @@ class TeacherService {
   }
   
   // Get all reviews for a teacher
-  Future<List<Review>> getTeacherReviews(String teacherId, {int limit = 20}) async {
+  Future<List<Review>> getTeacherReviews(String teacherId, {int limit = 20, DocumentSnapshot? startAfter}) async {
     try {
       print('Fetching reviews for teacher ID: $teacherId');
-      final querySnapshot = await _reviewsCollection
+      
+      Query query = _reviewsCollection
           .where('teacherId', isEqualTo: teacherId)
-          .orderBy('timestamp', descending: true)
-          .limit(limit)
-          .get();
+          .orderBy('timestamp', descending: true);
+          
+      // Apply pagination if startAfter document is provided
+      if (startAfter != null) {
+        query = query.startAfterDocument(startAfter);
+      }
+      
+      final querySnapshot = await query.limit(limit).get();
           
       print('Found ${querySnapshot.docs.length} reviews for teacher');
       
@@ -237,15 +243,21 @@ class TeacherService {
   }
   
   // Get the top rated teachers
-  Future<List<Teacher>> getTopRatedTeachers({int limit = 10}) async {
+  Future<List<Teacher>> getTopRatedTeachers({int limit = 10, DocumentSnapshot? startAfter}) async {
     try {
-      final querySnapshot = await _teachersCollection
+      Query query = _teachersCollection
           .where('reviewCount', isGreaterThan: 0)
           .orderBy('averageRating', descending: true)
           .orderBy('reviewCount', descending: true)
-          .orderBy('__name__', descending: true)
-          .limit(limit)
-          .get();
+          .orderBy('__name__', descending: true);
+      
+      // Apply pagination if startAfter document is provided
+      if (startAfter != null) {
+        query = query.startAfterDocument(startAfter);
+      }
+      
+      // Apply limit
+      final querySnapshot = await query.limit(limit).get();
           
       return querySnapshot.docs
           .map((doc) => Teacher.fromMap(doc.data() as Map<String, dynamic>, doc.id))
