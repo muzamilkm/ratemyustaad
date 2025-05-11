@@ -6,6 +6,7 @@ import '../../models/review.dart';
 import '../../models/teacher.dart';
 import '../../services/user_service.dart';
 import '../reviews/teacher_detail_screen.dart';
+import '../reviews/review_edit_screen.dart';
 import 'edit_profile_screen.dart';
 import 'change_email_screen.dart';
 import 'change_password_screen.dart';
@@ -433,19 +434,120 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: review.tags.map((tag) => _buildTag(tag)).toList(),
               ),
               const SizedBox(height: 8),
-              Text(
-                review.isAnonymous ? 'Posted anonymously' : 'Posted with your name',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                  fontStyle: FontStyle.italic,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    review.isAnonymous ? 'Posted anonymously' : 'Posted with your name',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                  // Edit/Delete buttons
+                  Row(
+                    children: [
+                      // Edit button
+                      IconButton(
+                        icon: const Icon(Icons.edit, size: 18),
+                        color: Theme.of(context).colorScheme.primary,
+                        onPressed: () {
+                          _editReview(review);
+                        },
+                      ),
+                      // Delete button
+                      IconButton(
+                        icon: const Icon(Icons.delete, size: 18),
+                        color: Colors.red,
+                        onPressed: () {
+                          _confirmDeleteReview(review);
+                        },
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
         ),
       ),
     );
+  }
+  
+  void _editReview(Review review) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ReviewEditScreen(review: review),
+      ),
+    );
+    
+    if (result == true) {
+      // Refresh the reviews if edit was successful
+      _loadUserData();
+    }
+  }
+  
+  void _confirmDeleteReview(Review review) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Review'),
+        content: const Text('Are you sure you want to delete this review? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _deleteReview(review);
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Future<void> _deleteReview(Review review) async {
+    setState(() {
+      _isLoading = true;
+    });
+    
+    try {
+      final success = await _userService.deleteReview(review.id);
+      
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Review deleted successfully')),
+        );
+        _loadUserData(); // Refresh the data
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to delete review'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+
+    } catch (e) {      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
   
   Widget _buildTag(String tag) {

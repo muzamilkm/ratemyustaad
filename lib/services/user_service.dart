@@ -124,6 +124,142 @@ class UserService {
     }
   }
   
+  // Delete a review
+  Future<bool> deleteReview(String reviewId) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        return false;
+      }
+      
+      // Get the review first to check if it belongs to the user
+      final reviewDoc = await _firestore.collection('reviews').doc(reviewId).get();
+      
+      if (!reviewDoc.exists) {
+        return false;
+      }
+      
+      final reviewData = reviewDoc.data() as Map<String, dynamic>;
+      
+      // Verify that the review belongs to the current user
+      if (reviewData['userId'] != user.uid) {
+        return false;
+      }
+      
+      // Delete the review
+      await _firestore.collection('reviews').doc(reviewId).delete();
+      
+      // Update teacher's average rating and review count
+      await _updateTeacherRatings(reviewData['teacherId']);
+      
+      return true;
+    } catch (e) {
+      print('Error deleting review: $e');
+      return false;
+    }
+  }
+  
+  // Update a review
+  Future<bool> updateReview(String reviewId, Map<String, dynamic> reviewData) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        return false;
+      }
+      
+      // Get the review first to check if it belongs to the user
+      final reviewDoc = await _firestore.collection('reviews').doc(reviewId).get();
+      
+      if (!reviewDoc.exists) {
+        return false;
+      }
+      
+      final existingReviewData = reviewDoc.data() as Map<String, dynamic>;
+      
+      // Verify that the review belongs to the current user
+      if (existingReviewData['userId'] != user.uid) {
+        return false;
+      }
+      
+      // Update the review
+      await _firestore.collection('reviews').doc(reviewId).update(reviewData);
+      
+      // Update teacher's average rating and review count
+      await _updateTeacherRatings(existingReviewData['teacherId']);
+      
+      return true;
+    } catch (e) {
+      print('Error updating review: $e');
+      return false;
+    }
+  }
+  
+  // Update teacher ratings (helper method for delete/update)
+  Future<void> _updateTeacherRatings(String teacherId) async {
+    try {
+      // Get all reviews for this teacher
+      final reviewsSnapshot = await _firestore
+          .collection('reviews')
+          .where('teacherId', isEqualTo: teacherId)
+          .get();
+      
+      if (reviewsSnapshot.docs.isEmpty) {
+        // No reviews left, reset the teacher ratings
+        await _firestore.collection('teachers').doc(teacherId).update({
+          'averageRating': 0.0,
+          'reviewCount': 0,
+          'ratingBreakdown': {
+            'teaching': 0.0,
+            'knowledge': 0.0,
+            'approachability': 0.0,
+            'grading': 0.0,
+          },
+        });
+        return;
+      }
+      
+      // Calculate average rating
+      double totalRating = 0;
+      final Map<String, double> ratingBreakdown = {
+        'teaching': 0.0,
+        'knowledge': 0.0,
+        'approachability': 0.0,
+        'grading': 0.0,
+      };
+      
+      // Sum up all ratings
+      for (final doc in reviewsSnapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        totalRating += (data['rating'] ?? 0.0).toDouble();
+        
+        // Sum up breakdown
+        final breakdown = data['ratingBreakdown'] as Map<String, dynamic>? ?? {};
+        for (final key in ratingBreakdown.keys) {
+          ratingBreakdown[key] = (ratingBreakdown[key] ?? 0.0) + 
+              (breakdown[key] ?? 0.0).toDouble();
+        }
+      }
+      
+      // Calculate averages
+      final reviewCount = reviewsSnapshot.docs.length;
+      final averageRating = totalRating / reviewCount;
+      
+      // Calculate average breakdown
+      for (final key in ratingBreakdown.keys) {
+        ratingBreakdown[key] = ratingBreakdown[key]! / reviewCount;
+      }
+      
+      // Update the teacher document
+      await _firestore.collection('teachers').doc(teacherId).update({
+        'averageRating': averageRating,
+        'reviewCount': reviewCount,
+        'ratingBreakdown': ratingBreakdown,
+      });
+    } catch (e) {
+      print('Error updating teacher ratings: $e');
+    }
+  }
+  
   // Sign out
   Future<void> signOut() async {
     await _auth.signOut();

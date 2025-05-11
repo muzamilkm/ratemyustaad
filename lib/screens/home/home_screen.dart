@@ -10,6 +10,7 @@ import '../../services/teacher_service.dart';
 import '../../services/user_service.dart';
 import '../reviews/teacher_detail_screen.dart';
 import '../reviews/review_submit_screen.dart';
+import '../reviews/review_edit_screen.dart';
 import '../search/teacher_search_screen.dart';
 
 // TEMPORARY FIX: Simplified queries to work around missing Firestore composite indexes
@@ -560,6 +561,10 @@ class ReviewCard extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    final isOwner = currentUserId != null && currentUserId == review.userId;
+    final userService = UserService();
+    
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -677,20 +682,116 @@ class ReviewCard extends StatelessWidget {
                       color: _HomeScreenState.hintTextColor,
                     ),
                   ),
-                  const Text(
-                    'Read more',
-                    style: TextStyle(
-                      fontFamily: 'Manrope',
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: _HomeScreenState.primaryColor,
+                  // If current user owns this review, show edit/delete buttons
+                  if (isOwner)
+                    Row(
+                      children: [
+                        // Edit button
+                        IconButton(
+                          icon: const Icon(Icons.edit, size: 18),
+                          color: _HomeScreenState.primaryColor,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ReviewEditScreen(review: review),
+                              ),
+                            );
+                            
+                            if (result == true) {
+                              // Need to refresh the parent widget
+                              // This is done through the parent's state
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Review updated, pull down to refresh'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        // Delete button
+                        IconButton(
+                          icon: const Icon(Icons.delete, size: 18),
+                          color: Colors.red,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () {
+                            _confirmDeleteReview(context, review, userService);
+                          },
+                        ),
+                      ],
+                    )
+                  else
+                    const Text(
+                      'Read more',
+                      style: TextStyle(
+                        fontFamily: 'Manrope',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: _HomeScreenState.primaryColor,
+                      ),
                     ),
-                  ),
                 ],
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+  
+  void _confirmDeleteReview(BuildContext context, Review review, UserService userService) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Review'),
+        content: const Text('Are you sure you want to delete this review? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              
+              try {
+                final success = await userService.deleteReview(review.id);
+                
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Review deleted, pull down to refresh'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Failed to delete review'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error: $e'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
       ),
     );
   }

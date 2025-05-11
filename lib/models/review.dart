@@ -42,6 +42,29 @@ class Review {
   });
 
   factory Review.fromMap(Map<String, dynamic> map, String id) {
+    // Helper function to safely convert numeric values to double
+    double toDouble(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is double) return value;
+      if (value is int) return value.toDouble();
+      return double.tryParse(value.toString()) ?? 0.0;
+    }
+    
+    // Handle rating breakdown with safe conversion
+    Map<String, double> parseRatingBreakdown(dynamic rawBreakdown) {
+      if (rawBreakdown == null) {
+        return {
+          'teaching': 0.0,
+          'knowledge': 0.0,
+          'approachability': 0.0,
+          'grading': 0.0,
+        };
+      }
+      
+      final Map<String, dynamic> breakdownMap = Map<String, dynamic>.from(rawBreakdown);
+      return breakdownMap.map((key, value) => MapEntry(key, toDouble(value)));
+    }
+
     return Review(
       id: id,
       teacherId: map['teacherId'] ?? '',
@@ -51,15 +74,8 @@ class Review {
       userName: map['userName'] ?? '',
       userEmail: map['userEmail'] ?? '',
       text: map['text'] ?? '',
-      rating: (map['rating'] ?? 0.0).toDouble(),
-      ratingBreakdown: Map<String, double>.from(
-        map['ratingBreakdown'] ?? {
-          'teaching': 0.0,
-          'knowledge': 0.0,
-          'approachability': 0.0,
-          'grading': 0.0,
-        },
-      ),
+      rating: toDouble(map['rating']),
+      ratingBreakdown: parseRatingBreakdown(map['ratingBreakdown']),
       tags: List<String>.from(map['tags'] ?? []),
       timestamp: (map['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
       courseCode: map['courseCode'] ?? '',
