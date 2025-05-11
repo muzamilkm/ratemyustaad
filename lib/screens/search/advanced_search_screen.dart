@@ -273,15 +273,21 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
   }
   
   Widget _buildFilterSection() {
+    // Calculate a safe height that accounts for the app bar and some padding
+    final screenHeight = MediaQuery.of(context).size.height;
+    final safeHeight = screenHeight * 0.65; // Limit to 65% of screen height to avoid overflow
+    
     return Container(
       color: Colors.white,
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.6,
+        maxHeight: safeHeight,
       ),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        physics: const AlwaysScrollableScrollPhysics(), // Always allow scrolling
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min, // Take minimum required space
           children: [
           // Department dropdown
           const Text(
@@ -552,7 +558,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
           
           // Apply/Reset buttons
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               TextButton(
                 onPressed: _resetFilters,
@@ -565,6 +571,29 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
                   style: TextStyle(
                     fontFamily: 'Manrope',
                     fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  _performSearch();
+                  setState(() {
+                    _showFilters = false;
+                  });
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Search',
+                  style: TextStyle(
+                    fontFamily: 'Manrope',
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
