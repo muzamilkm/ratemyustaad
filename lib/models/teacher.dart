@@ -27,15 +27,38 @@ class Teacher {
         };
 
   factory Teacher.fromMap(Map<String, dynamic> map, String documentId) {
+    // Helper function to safely convert numeric values to double
+    double toDouble(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is double) return value;
+      if (value is int) return value.toDouble();
+      return double.tryParse(value.toString()) ?? 0.0;
+    }
+    
+    // Helper function to parse rating breakdown
+    Map<String, dynamic> parseRatingBreakdown(dynamic rawBreakdown) {
+      if (rawBreakdown == null) {
+        return {
+          'teaching': 0.0,
+          'knowledge': 0.0,
+          'approachability': 0.0,
+          'grading': 0.0,
+        };
+      }
+      
+      final Map<String, dynamic> breakdownMap = Map<String, dynamic>.from(rawBreakdown);
+      return breakdownMap.map((key, value) => MapEntry(key, toDouble(value)));
+    }
+
     return Teacher(
       id: documentId,
       name: map['name'] ?? '',
       department: map['department'] ?? '',
       institution: map['institution'] ?? '',
       photoUrl: map['photoUrl'] ?? '',
-      averageRating: (map['averageRating'] ?? 0.0).toDouble(),
+      averageRating: toDouble(map['averageRating']),
       reviewCount: map['reviewCount'] ?? 0,
-      ratingBreakdown: Map<String, dynamic>.from(map['ratingBreakdown'] ?? {}),
+      ratingBreakdown: parseRatingBreakdown(map['ratingBreakdown']),
       isVerified: map['isVerified'] ?? false,
     );
   }
