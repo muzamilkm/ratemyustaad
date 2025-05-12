@@ -52,41 +52,32 @@ class RateMyUstaadApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(
-            create: (_) => OnboardingProvider()), // Add this provider
-      ],
-      child: MaterialApp(
-        title: 'Rate My Ustaad',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF5E17EB)),
-          useMaterial3: true,
-          fontFamily: 'Manrope',
-          // Ensure the AppBar doesn't show back buttons on home screen
-          appBarTheme: const AppBarTheme(
-            centerTitle: true,
-          ),
-        ),
-        home: const SplashScreen(),
-        navigatorObservers: [NoBackNavigationObserver()], // Add this observer
-        routes: {
-          '/landing': (context) => const LandingPage(),
-          '/login': (context) => const EmailLoginScreen(),
-          '/signup': (context) => const EmailSignupScreen(),
-          '/forgot-password': (context) => const ForgotPasswordScreen(),
-          '/home': (context) => const HomeScreen(),
-          '/search': (context) => const TeacherSearchScreen(),
-          '/search/advanced': (context) => const AdvancedSearchScreen(),
-          '/search/departments': (context) => const DepartmentsScreen(),
-          '/review/new': (context) => const ReviewSubmitScreen(),
-          '/profile': (context) => const ProfileScreen(),
-          '/onboarding': (context) => OnboardingFlow(
-                onComplete: () {
-                  Navigator.of(context).pushReplacementNamed('/home');
-                },
-              ),
+   return MultiProvider(
+  providers: [
+    ChangeNotifierProvider(create: (_) => AuthProvider()),
+    ChangeNotifierProvider(create: (_) => OnboardingProvider()),  // Add this provider
+  ],
+  child: MaterialApp(
+    title: 'Rate My Ustaad',
+    theme: ThemeData(
+      colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF5E17EB)),
+      useMaterial3: true,
+      fontFamily: 'Manrope',
+    ),
+    home: const SplashScreen(),    routes: {
+      '/landing': (context) => const LandingPage(),      
+      '/login': (context) => const EmailLoginScreen(),
+      '/signup': (context) => const EmailSignupScreen(),
+      '/forgot-password': (context) => const ForgotPasswordScreen(),
+      '/home': (context) => const HomeScreen(),
+      '/search': (context) => const TeacherSearchScreen(),
+      '/search/advanced': (context) => const AdvancedSearchScreen(),
+      '/search/departments': (context) => const DepartmentsScreen(),
+      '/review/new': (context) => const ReviewSubmitScreen(),
+      '/profile': (context) => const ProfileScreen(),
+      '/onboarding': (context) => OnboardingFlow(
+        onComplete: () {
+          Navigator.of(context).pushReplacementNamed('/home');
         },
         debugShowCheckedModeBanner: false,
       ),
