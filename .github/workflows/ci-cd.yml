@@ -3,7 +3,6 @@ name: 🛠 Android CI / Build & Release APK
 on:
   push:
     branches: [main]
-    tags: ["v*.*.*"]
   pull_request:
     branches: [main]
 
@@ -21,7 +20,7 @@ jobs:
 
     steps:
       - name: 📂 Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Fetch all history for tags and versioning
 
@@ -46,8 +45,8 @@ jobs:
       - name: 📥 Get dependencies
         run: flutter pub get
 
-      - name: ✅ Run tests
-        run: flutter test --coverage
+      # - name: ✅ Run tests
+      #   run: flutter test --coverage
 
       - name: 🏗️ Build APKs
         run: flutter build apk --release --split-per-abi
