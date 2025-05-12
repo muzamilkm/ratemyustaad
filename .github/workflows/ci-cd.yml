@@ -15,7 +15,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build_and_release:
+  buildAndRelease:
+    name: 📦 Build & Release APK/Web
     runs-on: ubuntu-latest
 
     steps:
@@ -90,24 +91,28 @@ jobs:
           path: build/web
           retention-days: 1
 
-  deploy_to_firebase:
-    needs: build_and_release
+  deployToFirebase:
+    name: 📦 Deploy to Firebase Hosting
+    needs: buildAndRelease
     runs-on: ubuntu-latest
     steps:
       - name: 📂 Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 📥 Download web build
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: web-build
           path: build/web
+
+      - name: Firebase Service Account
+        run: echo "FIREBASE_SERVICE_ACCOUNT=$(echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' | base64 --decode)" >> $GITHUB_ENV
 
       - name: 📦 Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
-          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
+          firebaseServiceAccount: "${{ env.FIREBASE_SERVICE_ACCOUNT }}"
           channelId: live
           projectId: rate-my-ustaad
         env:
