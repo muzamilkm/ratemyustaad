@@ -53,34 +53,37 @@ class RateMyUstaadApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
    return MultiProvider(
-  providers: [
-    ChangeNotifierProvider(create: (_) => AuthProvider()),
-    ChangeNotifierProvider(create: (_) => OnboardingProvider()),  // Add this provider
-  ],
-  child: MaterialApp(
-    title: 'Rate My Ustaad',
-    theme: ThemeData(
-      colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF5E17EB)),
-      useMaterial3: true,
-      fontFamily: 'Manrope',
-    ),
-    home: const SplashScreen(),    routes: {
-      '/landing': (context) => const LandingPage(),      
-      '/login': (context) => const EmailLoginScreen(),
-      '/signup': (context) => const EmailSignupScreen(),
-      '/forgot-password': (context) => const ForgotPasswordScreen(),
-      '/home': (context) => const HomeScreen(),
-      '/search': (context) => const TeacherSearchScreen(),
-      '/search/advanced': (context) => const AdvancedSearchScreen(),
-      '/search/departments': (context) => const DepartmentsScreen(),
-      '/review/new': (context) => const ReviewSubmitScreen(),
-      '/profile': (context) => const ProfileScreen(),
-      '/onboarding': (context) => OnboardingFlow(
-        onComplete: () {
-          Navigator.of(context).pushReplacementNamed('/home');
-        },
-        debugShowCheckedModeBanner: false,
+    providers: [
+      ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ChangeNotifierProvider(create: (_) => OnboardingProvider()),  // Add this provider
+    ],
+    child: MaterialApp(
+      title: 'Rate My Ustaad',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF5E17EB)),
+        useMaterial3: true,
+        fontFamily: 'Manrope',
       ),
-    );
+      debugShowCheckedModeBanner: false,
+      home: const SplashScreen(),
+      routes: {
+        '/landing': (context) => const LandingPage(),      
+        '/login': (context) => const EmailLoginScreen(),
+        '/signup': (context) => const EmailSignupScreen(),
+        '/forgot-password': (context) => const ForgotPasswordScreen(),
+        '/home': (context) => const HomeScreen(),
+        '/search': (context) => const TeacherSearchScreen(),
+        '/search/advanced': (context) => const AdvancedSearchScreen(),
+        '/search/departments': (context) => const DepartmentsScreen(),
+        '/review/new': (context) => const ReviewSubmitScreen(),
+        '/profile': (context) => const ProfileScreen(),
+        '/onboarding': (context) => OnboardingFlow(
+          onComplete: () {
+            Navigator.of(context).pushReplacementNamed('/home');
+          },
+        ),
+      },
+    ),
+   );
   }
 }
