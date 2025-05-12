@@ -345,6 +345,17 @@ class TeacherResultCard extends StatelessWidget {
                       color: _DepartmentFilterScreenState.darkTextColor,
                     ),
                   ),
+                  if (teacher.institution.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      teacher.institution,
+                      style: const TextStyle(
+                        fontFamily: 'Manrope',
+                        fontSize: 14,
+                        color: _DepartmentFilterScreenState.hintTextColor,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   // Rating
                   Row(

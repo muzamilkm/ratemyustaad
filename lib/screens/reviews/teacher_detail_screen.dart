@@ -248,6 +248,22 @@ class _TeacherDetailScreenState extends State<TeacherDetailScreen> {
           
           const SizedBox(height: 4),
           
+          // Institution
+          if (widget.teacher.institution.isNotEmpty) ...[
+            Text(
+              widget.teacher.institution,
+              style: const TextStyle(
+                fontFamily: 'Manrope',
+                fontSize: 16,
+                color: hintTextColor,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            
+            const SizedBox(height: 4),
+          ],
+          
           // Teacher Department
           Text(
             widget.teacher.department,
@@ -259,20 +275,6 @@ class _TeacherDetailScreenState extends State<TeacherDetailScreen> {
             ),
             textAlign: TextAlign.center,
           ),
-          
-          if (widget.teacher.institution.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            // Institution
-            Text(
-              widget.teacher.institution,
-              style: const TextStyle(
-                fontFamily: 'Manrope',
-                fontSize: 14,
-                color: hintTextColor,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
           
           const SizedBox(height: 20),
           

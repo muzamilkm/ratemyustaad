@@ -221,7 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 
                 // Top-Rated Instructors Horizontal ListView
                 SizedBox(
-                  height: 180,
+                  height: 220, // Increased from 180 to 220 to accommodate the institution text
                   child: _buildTopInstructorsList(),
                 ),
                 
@@ -462,7 +462,7 @@ class InstructorCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 16),
+            const SizedBox(height: 12), // Slightly reduced from 16 to 12
             // Instructor Image
             CircleAvatar(
               radius: 40,
@@ -479,7 +479,7 @@ class InstructorCard extends StatelessWidget {
                     )
                   : null,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10), // Slightly reduced from 12 to 10
             // Name
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -497,6 +497,24 @@ class InstructorCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
+            // Institution
+            if (teacher.institution.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  teacher.institution,
+                  style: const TextStyle(
+                    fontFamily: 'Manrope',
+                    fontSize: 12,
+                    color: _HomeScreenState.hintTextColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 2),
+            ],
             // Department
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
