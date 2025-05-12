@@ -8,13 +8,13 @@ class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
   bool _isLoading = false;
   String? _error;
-  
+
   // Getters
   User? get currentUser => _authService.currentUser;
   bool get isAuthenticated => currentUser != null;
   bool get isLoading => _isLoading;
   String? get error => _error;
-  
+
   // Auth state changes stream
   Stream<User?> get authStateChanges => _authService.authStateChanges;
 
@@ -23,13 +23,13 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = true;
     _error = null;
     notifyListeners();
-    
+
     try {
       await _authService.signInWithEmail(email, password);
-      
+
       // Get and save the token
       await _saveAuthToken();
-      
+
       _isLoading = false;
       notifyListeners();
       return true;
@@ -49,7 +49,7 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = true;
     _error = null;
     notifyListeners();
-    
+
     try {
       final userCredential = await _authService.signInWithGoogle();
       // If user canceled the sign-in process, userCredential will be null
@@ -57,7 +57,7 @@ class AuthProvider extends ChangeNotifier {
         // Get and save the token
         await _saveAuthToken();
       }
-      
+
       _isLoading = false;
       notifyListeners();
       return userCredential != null;
@@ -71,19 +71,19 @@ class AuthProvider extends ChangeNotifier {
       return false;
     }
   }
-  
+
   // Create account with email and password
   Future<bool> createAccount(String email, String password) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
-    
+
     try {
       await _authService.createAccountWithEmail(email, password);
-      
+
       // Get and save the token for newly created account
       await _saveAuthToken();
-      
+
       _isLoading = false;
       notifyListeners();
       return true;
@@ -97,13 +97,13 @@ class AuthProvider extends ChangeNotifier {
       return false;
     }
   }
-  
+
   // Send password reset email
   Future<bool> resetPassword(String email) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
-    
+
     try {
       await _authService.sendPasswordResetEmail(email);
       _isLoading = false;
@@ -119,7 +119,7 @@ class AuthProvider extends ChangeNotifier {
       return false;
     }
   }
-  
+
   // Handle Firebase Auth Exceptions
   void _handleAuthError(FirebaseAuthException e) {
     switch (e.code) {
@@ -144,7 +144,7 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
   }
-  
+
   // Sign out
   Future<void> signOut() async {
     try {
@@ -153,7 +153,7 @@ class AuthProvider extends ChangeNotifier {
       await prefs.remove('email');
       await prefs.remove('password');
       await prefs.setBool('rememberMe', false);
-      
+
       // Sign out from Firebase
       await _authService.signOut();
       notifyListeners();
@@ -162,13 +162,13 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-  
+
   // Clear any errors
   void clearError() {
     _error = null;
     notifyListeners();
   }
-  
+
   // Save auth token to SharedPreferences and log it
   Future<void> _saveAuthToken() async {
     try {
@@ -176,12 +176,12 @@ class AuthProvider extends ChangeNotifier {
       if (token != null) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('authToken', token);
-        
+
         // Print the token more prominently
         print('==========================================');
         print('FIREBASE ID TOKEN: $token');
         print('==========================================');
-        
+
         // Also log with developer tools
         developer.log('Firebase Auth Token: $token', name: 'AuthProvider');
       } else {
@@ -189,7 +189,8 @@ class AuthProvider extends ChangeNotifier {
       }
     } catch (e) {
       print('ERROR: Failed to get Firebase ID token: $e');
-      developer.log('Error saving auth token: $e', name: 'AuthProvider', error: e);
+      developer.log('Error saving auth token: $e',
+          name: 'AuthProvider', error: e);
     }
   }
 }

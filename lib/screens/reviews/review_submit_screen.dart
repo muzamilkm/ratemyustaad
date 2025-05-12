@@ -12,7 +12,7 @@ class ReviewSubmitScreen extends StatefulWidget {
   final String? department;
 
   const ReviewSubmitScreen({
-    Key? key, 
+    Key? key,
     this.teacher,
     this.teacherName,
     this.department,
@@ -29,7 +29,7 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
   static const hintTextColor = Color(0xFF708090);
   static const backgroundColor = Color(0xFFF0F8FF);
   static const cardColor = Colors.white;
-  
+
   // Form controllers
   final _teacherNameController = TextEditingController();
   final _departmentController = TextEditingController();
@@ -37,7 +37,7 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
   final _reviewTextController = TextEditingController();
   final _courseCodeController = TextEditingController();
   final _courseNameController = TextEditingController();
-  
+
   // Rating values
   double _overallRating = 0;
   final Map<String, double> _ratingBreakdown = {
@@ -46,13 +46,13 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
     'approachability': 0.0,
     'grading': 0.0,
   };
-  
+
   // Tags
   final List<String> _availableTags = [
-    'Helpful', 
+    'Helpful',
     'Clear Explanations',
-    'Difficult', 
-    'Easy Grader', 
+    'Difficult',
+    'Easy Grader',
     'Tough Grader',
     'Project-Based',
     'Engaging',
@@ -60,15 +60,15 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
     'Inspiring',
     'Fair',
   ];
-  
+
   final List<String> _selectedTags = [];
-  
+
   bool _isAnonymous = false;
   bool _isSubmitting = false;
   // Create instances of required services
   final TeacherService _teacherService = TeacherService();
   final UserService _userService = UserService();
-  
+
   @override
   void initState() {
     super.initState();
@@ -82,7 +82,7 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
       _departmentController.text = widget.department!;
     }
   }
-  
+
   @override
   void dispose() {
     _teacherNameController.dispose();
@@ -93,29 +93,30 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
     _courseNameController.dispose();
     super.dispose();
   }
-  
+
   Future<void> _submitReview() async {
     if (_validateForm()) {
       setState(() {
         _isSubmitting = true;
       });
-      
+
       try {
         // Check the review content first
         final reviewText = _reviewTextController.text;
         try {
           final censorship = await _userService.checkReviewContent(reviewText);
-          
+
           // Check if the review was accepted
           if (censorship['accepted'] != true) {
             // Review was rejected by the AI, show the appropriate message
-            _showError("Your review contains inappropriate language as detected by our AI. Please rewrite your review and try again.");
+            _showError(
+                "Your review contains inappropriate language as detected by our AI. Please rewrite your review and try again.");
             setState(() {
               _isSubmitting = false;
             });
             return;
           }
-          
+
           // If we get here, the review content was accepted, so continue with submission
           await _teacherService.addReview(
             teacherName: _teacherNameController.text,
@@ -129,22 +130,25 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
             tags: _selectedTags,
             isAnonymous: _isAnonymous,
           );
-          
+
           if (mounted) {
             _showSuccessMessage();
             // Go back after success
             Future.delayed(const Duration(seconds: 2), () {
               if (mounted) {
-                Navigator.of(context).pop(true); // Return true for successful submission
+                Navigator.of(context)
+                    .pop(true); // Return true for successful submission
               }
             });
           }
         } catch (e) {
           // Handle specific error messages from the censorship check
           if (e.toString().contains('validation_connectivity_error')) {
-            _showError("Unable to connect to the server to validate the review language. Please try again later.");
+            _showError(
+                "Unable to connect to the server to validate the review language. Please try again later.");
           } else if (e.toString().contains('validation_server_error')) {
-            _showError("Unable to connect to the server to validate the review language. Please try again later.");
+            _showError(
+                "Unable to connect to the server to validate the review language. Please try again later.");
           } else {
             _showError("Error validating review: ${e.toString()}");
           }
@@ -168,34 +172,34 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
       }
     }
   }
-  
+
   bool _validateForm() {
     // Basic validation
     if (_teacherNameController.text.isEmpty) {
       _showError('Please enter teacher name');
       return false;
     }
-    
+
     if (_departmentController.text.isEmpty) {
       _showError('Please enter department');
       return false;
     }
-    
+
     if (_institutionController.text.isEmpty) {
       _showError('Please enter university/institution');
       return false;
     }
-    
+
     if (_reviewTextController.text.isEmpty) {
       _showError('Please write a review');
       return false;
     }
-    
+
     if (_overallRating == 0) {
       _showError('Please provide an overall rating');
       return false;
     }
-    
+
     // Check if any rating is 0
     for (final key in _ratingBreakdown.keys) {
       if (_ratingBreakdown[key] == 0) {
@@ -203,10 +207,10 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
         return false;
       }
     }
-    
+
     return true;
   }
-  
+
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -215,7 +219,7 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
       ),
     );
   }
-  
+
   void _showSuccessMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -224,7 +228,7 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
       ),
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -314,9 +318,9 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Overall Rating
               Container(
                 width: double.infinity,
@@ -352,7 +356,8 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
                         direction: Axis.horizontal,
                         allowHalfRating: true,
                         itemCount: 5,
-                        itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
+                        itemPadding:
+                            const EdgeInsets.symmetric(horizontal: 4.0),
                         itemBuilder: (context, _) => Icon(
                           Icons.star,
                           color: primaryColor,
@@ -374,7 +379,9 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
                           style: TextStyle(
                             fontFamily: 'Manrope',
                             fontSize: 16,
-                            color: _overallRating > 0 ? darkTextColor : hintTextColor,
+                            color: _overallRating > 0
+                                ? darkTextColor
+                                : hintTextColor,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -383,9 +390,9 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Detailed Ratings
               Container(
                 width: double.infinity,
@@ -414,11 +421,13 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    
+
                     // Generate rating bars for each category
-                    ...['teaching', 'knowledge', 'approachability', 'grading'].map((category) {
-                      String displayName = category[0].toUpperCase() + category.substring(1);
-                      
+                    ...['teaching', 'knowledge', 'approachability', 'grading']
+                        .map((category) {
+                      String displayName =
+                          category[0].toUpperCase() + category.substring(1);
+
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 16.0),
                         child: Column(
@@ -438,7 +447,8 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
                               children: [
                                 Expanded(
                                   child: RatingBar.builder(
-                                    initialRating: _ratingBreakdown[category] ?? 0,
+                                    initialRating:
+                                        _ratingBreakdown[category] ?? 0,
                                     minRating: 1,
                                     direction: Axis.horizontal,
                                     allowHalfRating: true,
@@ -458,7 +468,8 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
                                 const SizedBox(width: 12),
                                 Text(
                                   (_ratingBreakdown[category] ?? 0) > 0
-                                      ? (_ratingBreakdown[category] ?? 0).toString()
+                                      ? (_ratingBreakdown[category] ?? 0)
+                                          .toString()
                                       : "-",
                                   style: TextStyle(
                                     fontFamily: 'Manrope',
@@ -478,9 +489,9 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Tags
               Container(
                 width: double.infinity,
@@ -539,7 +550,8 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: isSelected ? primaryColor : Colors.grey[200],
+                              color:
+                                  isSelected ? primaryColor : Colors.grey[200],
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
@@ -548,7 +560,8 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
                                 fontFamily: 'Manrope',
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
-                                color: isSelected ? Colors.white : darkTextColor,
+                                color:
+                                    isSelected ? Colors.white : darkTextColor,
                               ),
                             ),
                           ),
@@ -558,9 +571,9 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Review Text
               Container(
                 width: double.infinity,
@@ -623,9 +636,9 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Anonymous Option
               Container(
                 width: double.infinity,
@@ -680,9 +693,9 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Submit Button
               SizedBox(
                 width: double.infinity,
@@ -699,7 +712,8 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
                   ),
                   child: _isSubmitting
                       ? const CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
                         )
                       : const Text(
                           "Submit Review",
@@ -712,7 +726,7 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
                         ),
                 ),
               ),
-              
+
               const SizedBox(height: 24),
             ],
           ),
@@ -720,7 +734,7 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
       ),
     );
   }
-  
+
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -768,7 +782,8 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
             ),
             filled: true,
             fillColor: readOnly ? Colors.grey[100] : Colors.grey[50],
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
         ),
       ],

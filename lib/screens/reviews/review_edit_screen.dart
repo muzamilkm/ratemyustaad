@@ -101,23 +101,24 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
       setState(() {
         _isSubmitting = true;
       });
-      
+
       try {
         // Check the review content first
         final reviewText = _reviewTextController.text;
         try {
           final censorship = await _userService.checkReviewContent(reviewText);
-          
+
           // Check if the review was accepted
           if (censorship['accepted'] != true) {
             // Review was rejected by the AI, show the appropriate message
-            _showError("Your review contains inappropriate language as detected by our AI. Please rewrite your review and try again.");
+            _showError(
+                "Your review contains inappropriate language as detected by our AI. Please rewrite your review and try again.");
             setState(() {
               _isSubmitting = false;
             });
             return;
           }
-          
+
           // If we get here, the review content was accepted, so continue with update
           final updatedData = {
             'text': reviewText,
@@ -127,17 +128,19 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
             'courseName': _courseNameController.text,
             'tags': _selectedTags,
           };
-          
-          final success = await _userService.updateReview(widget.review.id, updatedData);
-          
+
+          final success =
+              await _userService.updateReview(widget.review.id, updatedData);
+
           if (mounted) {
             if (success) {
               _showSuccessMessage();
-              
+
               // Go back after success
               Future.delayed(const Duration(seconds: 2), () {
                 if (mounted) {
-                  Navigator.of(context).pop(true); // Return true for successful update
+                  Navigator.of(context)
+                      .pop(true); // Return true for successful update
                 }
               });
             } else {
@@ -147,9 +150,11 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
         } catch (e) {
           // Handle specific error messages from the censorship check
           if (e.toString().contains('validation_connectivity_error')) {
-            _showError("Unable to connect to the server to validate the review language. Please try again later.");
+            _showError(
+                "Unable to connect to the server to validate the review language. Please try again later.");
           } else if (e.toString().contains('validation_server_error')) {
-            _showError("Unable to connect to the server to validate the review language. Please try again later.");
+            _showError(
+                "Unable to connect to the server to validate the review language. Please try again later.");
           } else {
             _showError("Error validating review: ${e.toString()}");
           }
