@@ -1,1 +1,34 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"rate-my-ustaad","appId":"1:128410338756:android:6e1ffc527687a0e61b9091","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"rate-my-ustaad","configurations":{"android":"1:128410338756:android:6e1ffc527687a0e61b9091","ios":"1:128410338756:ios:ee8eccb4d62bafc91b9091","web":"1:128410338756:web:4a6368c61f48c6211b9091"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "rate-my-ustaad",
+          "appId": "1:128410338756:android:6e1ffc527687a0e61b9091",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "rate-my-ustaad",
+          "configurations": {
+            "android": "1:128410338756:android:6e1ffc527687a0e61b9091",
+            "ios": "1:128410338756:ios:ee8eccb4d62bafc91b9091",
+            "web": "1:128410338756:web:4a6368c61f48c6211b9091"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "source": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "frameworksBackend": {
+      "region": "asia-east1"
+    }
+  }
+}

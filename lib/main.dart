@@ -29,6 +29,24 @@ void main() async {
   runApp(const RateMyUstaadApp());
 }
 
+// Custom route observer to disable back navigation for certain routes
+class NoBackNavigationObserver extends NavigatorObserver {
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    super.didPush(route, previousRoute);
+
+    // If we're navigating to the home screen and not from another app screen
+    if (route.settings.name == '/home' &&
+        (previousRoute?.settings.name == '/landing' ||
+            previousRoute?.settings.name == '/login' ||
+            previousRoute?.settings.name == '/signup' ||
+            previousRoute?.settings.name == '/onboarding')) {
+      // Clear the navigation history to prevent back navigation
+      Navigator.of(route.navigator!.context).removeRoute(previousRoute!);
+    }
+  }
+}
+
 class RateMyUstaadApp extends StatelessWidget {
   const RateMyUstaadApp({super.key});
 
@@ -61,10 +79,8 @@ class RateMyUstaadApp extends StatelessWidget {
         onComplete: () {
           Navigator.of(context).pushReplacementNamed('/home');
         },
+        debugShowCheckedModeBanner: false,
       ),
-    },
-    debugShowCheckedModeBanner: false,
-  ),
-);
+    );
   }
 }
