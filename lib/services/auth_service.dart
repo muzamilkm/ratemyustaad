@@ -15,6 +15,15 @@ class AuthService {
   // Stream of auth changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
+  // Get user ID token
+  Future<String?> getUserIdToken() async {
+    final User? user = _auth.currentUser;
+    if (user != null) {
+      return await user.getIdToken();
+    }
+    return null;
+  }
+
   // Sign in with email and password
   Future<UserCredential> signInWithEmail(String email, String password) async {
     return await _auth.signInWithEmailAndPassword(

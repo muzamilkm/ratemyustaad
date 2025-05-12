@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:developer' as developer;
 
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -25,6 +26,10 @@ class AuthProvider extends ChangeNotifier {
     
     try {
       await _authService.signInWithEmail(email, password);
+      
+      // Get and save the token
+      await _saveAuthToken();
+      
       _isLoading = false;
       notifyListeners();
       return true;
@@ -38,16 +43,19 @@ class AuthProvider extends ChangeNotifier {
       return false;
     }
   }
-    // Sign in with Google
+
+  // Sign in with Google
   Future<bool> signInWithGoogle() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
     
     try {
-      final userCredential = await _authService.signInWithGoogle();      // If user canceled the sign-in process, userCredential will be null
+      final userCredential = await _authService.signInWithGoogle();
+      // If user canceled the sign-in process, userCredential will be null
       if (userCredential != null) {
-        // We have a signed-in user (onboarding status will be checked via Firestore)
+        // Get and save the token
+        await _saveAuthToken();
       }
       
       _isLoading = false;
@@ -72,6 +80,10 @@ class AuthProvider extends ChangeNotifier {
     
     try {
       await _authService.createAccountWithEmail(email, password);
+      
+      // Get and save the token for newly created account
+      await _saveAuthToken();
+      
       _isLoading = false;
       notifyListeners();
       return true;
@@ -155,5 +167,29 @@ class AuthProvider extends ChangeNotifier {
   void clearError() {
     _error = null;
     notifyListeners();
+  }
+  
+  // Save auth token to SharedPreferences and log it
+  Future<void> _saveAuthToken() async {
+    try {
+      final token = await _authService.getUserIdToken();
+      if (token != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('authToken', token);
+        
+        // Print the token more prominently
+        print('==========================================');
+        print('FIREBASE ID TOKEN: $token');
+        print('==========================================');
+        
+        // Also log with developer tools
+        developer.log('Firebase Auth Token: $token', name: 'AuthProvider');
+      } else {
+        print('WARNING: Failed to get Firebase ID token - token is null');
+      }
+    } catch (e) {
+      print('ERROR: Failed to get Firebase ID token: $e');
+      developer.log('Error saving auth token: $e', name: 'AuthProvider', error: e);
+    }
   }
 }
