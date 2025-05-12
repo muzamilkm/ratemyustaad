@@ -139,14 +139,14 @@ jobs:
           name: web-build
           path: build/web
 
-      - name: Firebase Service Account
-        run: echo "FIREBASE_SERVICE_ACCOUNT=$(echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' | base64 --decode)" >> $GITHUB_ENV
+      # - name: Firebase Service Account
+      #   run: echo "FIREBASE_SERVICE_ACCOUNT=$(echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' | base64 --decode)" >> $GITHUB_ENV
 
       - name: 📦 Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
-          firebaseServiceAccount: "${{ env.FIREBASE_SERVICE_ACCOUNT }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}"
           channelId: live
           projectId: rate-my-ustaad
         env:
