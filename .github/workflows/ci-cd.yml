@@ -1,10 +1,17 @@
-name: 🛠 Android CI / Build & Release APK
+name: 🛠 Build & Release Workflow
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: "Build Type"
+        required: true
+        default: "3"
+        type: choice
+        options:
+          - "Build and release APK"
+          - "Build and release Web (deploys to web)"
+          - "Build and release APK and Web (runs complete)"
 
 permissions:
   contents: write # allow creating/updating Releases & uploading assets
@@ -15,8 +22,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  buildAndRelease:
-    name: 📦 Build & Release APK/Web
+  buildAndReleaseAPK:
+    name: 📦 Build & Release APK
+    if: ${{ github.event.inputs.build_type == 'Build and release APK' || github.event.inputs.build_type == 'Build and release APK and Web (runs complete)' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -80,9 +88,34 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           allowUpdates: true
 
+  buildAndReleaseWeb:
+    name: 📦 Build & Release Web
+    if: ${{ github.event.inputs.build_type == 'Build and release Web (deploys to web)' || github.event.inputs.build_type == 'Build and release APK and Web (runs complete)' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📂 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for tags and versioning
+
+      - name: 🚀 Cache pub deps
+        uses: actions/cache@v3
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml') }}
+          restore-keys: ${{ runner.os }}-pub-
+
+      - name: 🦋 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: 📥 Get dependencies
+        run: flutter pub get
+
       - name: 🏗️ Build web
-        run: |
-          flutter build web
+        run: flutter build web
 
       - name: 📦 Upload web build artifact
         uses: actions/upload-artifact@v4
@@ -93,7 +126,8 @@ jobs:
 
   deployToFirebase:
     name: 📦 Deploy to Firebase Hosting
-    needs: buildAndRelease
+    needs: buildAndReleaseWeb
+    if: ${{ github.event.inputs.build_type == 'Build and release Web (deploys to web)' || github.event.inputs.build_type == 'Build and release APK and Web (runs complete)' }}
     runs-on: ubuntu-latest
     steps:
       - name: 📂 Checkout code
