@@ -3,6 +3,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/teacher_service.dart';
+import '../../services/user_service.dart';
 import '../../models/teacher.dart';
 
 class ReviewSubmitScreen extends StatefulWidget {
@@ -64,7 +65,9 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
   
   bool _isAnonymous = false;
   bool _isSubmitting = false;
+  // Create instances of required services
   final TeacherService _teacherService = TeacherService();
+  final UserService _userService = UserService();
   
   @override
   void initState() {
@@ -98,26 +101,55 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
       });
       
       try {
-        await _teacherService.addReview(
-          teacherName: _teacherNameController.text,
-          teacherDepartment: _departmentController.text,
-          text: _reviewTextController.text,
-          rating: _overallRating,
-          ratingBreakdown: _ratingBreakdown,
-          institution: _institutionController.text,
-          courseCode: _courseCodeController.text,
-          courseName: _courseNameController.text,
-          tags: _selectedTags,
-          isAnonymous: _isAnonymous,
-        );
-        
-        if (mounted) {
-          _showSuccessMessage();
-          // Go back after success
-          Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) {
-              Navigator.of(context).pop(true); // Return true for successful submission
-            }
+        // Check the review content first
+        final reviewText = _reviewTextController.text;
+        try {
+          final censorship = await _userService.checkReviewContent(reviewText);
+          
+          // Check if the review was accepted
+          if (censorship['accepted'] != true) {
+            // Review was rejected by the AI, show the appropriate message
+            _showError("Your review contains inappropriate language as detected by our AI. Please rewrite your review and try again.");
+            setState(() {
+              _isSubmitting = false;
+            });
+            return;
+          }
+          
+          // If we get here, the review content was accepted, so continue with submission
+          await _teacherService.addReview(
+            teacherName: _teacherNameController.text,
+            teacherDepartment: _departmentController.text,
+            text: reviewText,
+            rating: _overallRating,
+            ratingBreakdown: _ratingBreakdown,
+            institution: _institutionController.text,
+            courseCode: _courseCodeController.text,
+            courseName: _courseNameController.text,
+            tags: _selectedTags,
+            isAnonymous: _isAnonymous,
+          );
+          
+          if (mounted) {
+            _showSuccessMessage();
+            // Go back after success
+            Future.delayed(const Duration(seconds: 2), () {
+              if (mounted) {
+                Navigator.of(context).pop(true); // Return true for successful submission
+              }
+            });
+          }
+        } catch (e) {
+          // Handle specific error messages from the censorship check
+          if (e.toString().contains('validation_connectivity_error')) {
+            _showError("Unable to connect to the server to validate the review language. Please try again later.");
+          } else if (e.toString().contains('validation_server_error')) {
+            _showError("Unable to connect to the server to validate the review language. Please try again later.");
+          } else {
+            _showError("Error validating review: ${e.toString()}");
+          }
+          setState(() {
+            _isSubmitting = false;
           });
         }
       } catch (e) {
@@ -125,17 +157,14 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error submitting review. Please try again.'),
+              content: Text('Error submitting review: ${e.toString()}'),
               backgroundColor: Colors.red,
             ),
           );
         }
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isSubmitting = false;
-          });
-        }
+        setState(() {
+          _isSubmitting = false;
+        });
       }
     }
   }

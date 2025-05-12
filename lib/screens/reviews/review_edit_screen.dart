@@ -7,7 +7,7 @@ class ReviewEditScreen extends StatefulWidget {
   final Review review;
 
   const ReviewEditScreen({
-    Key? key, 
+    Key? key,
     required this.review,
   }) : super(key: key);
 
@@ -22,7 +22,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
   static const hintTextColor = Color(0xFF708090);
   static const backgroundColor = Color(0xFFF0F8FF);
   static const cardColor = Colors.white;
-  
+
   // Form controllers
   final _teacherNameController = TextEditingController();
   final _departmentController = TextEditingController();
@@ -30,7 +30,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
   final _reviewTextController = TextEditingController();
   final _courseCodeController = TextEditingController();
   final _courseNameController = TextEditingController();
-  
+
   // Rating values
   double _overallRating = 0;
   final Map<String, double> _ratingBreakdown = {
@@ -39,13 +39,13 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
     'approachability': 0.0,
     'grading': 0.0,
   };
-  
+
   // Tags
   final List<String> _availableTags = [
-    'Helpful', 
+    'Helpful',
     'Clear Explanations',
-    'Difficult', 
-    'Easy Grader', 
+    'Difficult',
+    'Easy Grader',
     'Tough Grader',
     'Project-Based',
     'Engaging',
@@ -53,17 +53,17 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
     'Inspiring',
     'Fair',
   ];
-  
+
   final List<String> _selectedTags = [];
-  
+
   bool _isAnonymous = false;
   bool _isSubmitting = false;
   final UserService _userService = UserService();
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     // Pre-populate fields from the existing review
     _teacherNameController.text = widget.review.teacherName;
     _departmentController.text = widget.review.teacherDepartment;
@@ -71,20 +71,20 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
     _courseCodeController.text = widget.review.courseCode;
     _courseNameController.text = widget.review.courseName;
     _overallRating = widget.review.rating;
-    
+
     // Copy rating breakdown
     _ratingBreakdown.clear();
     for (final entry in widget.review.ratingBreakdown.entries) {
       _ratingBreakdown[entry.key] = entry.value;
     }
-    
+
     // Copy tags
     _selectedTags.addAll(widget.review.tags);
-    
+
     // Set anonymous status (but don't allow changing it)
     _isAnonymous = widget.review.isAnonymous;
   }
-  
+
   @override
   void dispose() {
     _teacherNameController.dispose();
@@ -95,7 +95,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
     _courseNameController.dispose();
     super.dispose();
   }
-  
+
   Future<void> _updateReview() async {
     if (_validateForm()) {
       setState(() {
@@ -103,58 +103,84 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
       });
       
       try {
-        final updatedData = {
-          'text': _reviewTextController.text,
-          'rating': _overallRating,
-          'ratingBreakdown': _ratingBreakdown,
-          'courseCode': _courseCodeController.text,
-          'courseName': _courseNameController.text,
-          'tags': _selectedTags,
-        };
-        
-        final success = await _userService.updateReview(widget.review.id, updatedData);
-        
-        if (mounted) {
-          if (success) {
-            _showSuccessMessage();
-            
-            // Go back after success
-            Future.delayed(const Duration(seconds: 2), () {
-              if (mounted) {
-                Navigator.of(context).pop(true); // Return true for successful update
-              }
+        // Check the review content first
+        final reviewText = _reviewTextController.text;
+        try {
+          final censorship = await _userService.checkReviewContent(reviewText);
+          
+          // Check if the review was accepted
+          if (censorship['accepted'] != true) {
+            // Review was rejected by the AI, show the appropriate message
+            _showError("Your review contains inappropriate language as detected by our AI. Please rewrite your review and try again.");
+            setState(() {
+              _isSubmitting = false;
             });
-          } else {
-            _showError('Failed to update review. Please try again.');
+            return;
           }
-        }
-      } catch (e) {
-        print('Error updating review: $e');
-        if (mounted) {
-          _showError('Error updating review: $e');
-        }
-      } finally {
-        if (mounted) {
+          
+          // If we get here, the review content was accepted, so continue with update
+          final updatedData = {
+            'text': reviewText,
+            'rating': _overallRating,
+            'ratingBreakdown': _ratingBreakdown,
+            'courseCode': _courseCodeController.text,
+            'courseName': _courseNameController.text,
+            'tags': _selectedTags,
+          };
+          
+          final success = await _userService.updateReview(widget.review.id, updatedData);
+          
+          if (mounted) {
+            if (success) {
+              _showSuccessMessage();
+              
+              // Go back after success
+              Future.delayed(const Duration(seconds: 2), () {
+                if (mounted) {
+                  Navigator.of(context).pop(true); // Return true for successful update
+                }
+              });
+            } else {
+              _showError('Failed to update review. Please try again.');
+            }
+          }
+        } catch (e) {
+          // Handle specific error messages from the censorship check
+          if (e.toString().contains('validation_connectivity_error')) {
+            _showError("Unable to connect to the server to validate the review language. Please try again later.");
+          } else if (e.toString().contains('validation_server_error')) {
+            _showError("Unable to connect to the server to validate the review language. Please try again later.");
+          } else {
+            _showError("Error validating review: ${e.toString()}");
+          }
           setState(() {
             _isSubmitting = false;
           });
         }
+      } catch (e) {
+        print('Error updating review: $e');
+        if (mounted) {
+          _showError('Error updating review: ${e.toString()}');
+        }
+        setState(() {
+          _isSubmitting = false;
+        });
       }
     }
   }
-  
+
   bool _validateForm() {
     // Basic validation
     if (_reviewTextController.text.isEmpty) {
       _showError('Please write a review');
       return false;
     }
-    
+
     if (_overallRating == 0) {
       _showError('Please provide an overall rating');
       return false;
     }
-    
+
     // Check if any rating is 0
     for (final key in _ratingBreakdown.keys) {
       if (_ratingBreakdown[key] == 0) {
@@ -162,10 +188,10 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
         return false;
       }
     }
-    
+
     return true;
   }
-  
+
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -174,7 +200,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
       ),
     );
   }
-  
+
   void _showSuccessMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -183,7 +209,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
       ),
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -266,9 +292,9 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Overall Rating
               Container(
                 width: double.infinity,
@@ -304,7 +330,8 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                         direction: Axis.horizontal,
                         allowHalfRating: true,
                         itemCount: 5,
-                        itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
+                        itemPadding:
+                            const EdgeInsets.symmetric(horizontal: 4.0),
                         itemBuilder: (context, _) => Icon(
                           Icons.star,
                           color: primaryColor,
@@ -333,9 +360,9 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Detailed Ratings
               Container(
                 width: double.infinity,
@@ -364,11 +391,13 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    
+
                     // Generate rating bars for each category
-                    ...['teaching', 'knowledge', 'approachability', 'grading'].map((category) {
-                      String displayName = category[0].toUpperCase() + category.substring(1);
-                      
+                    ...['teaching', 'knowledge', 'approachability', 'grading']
+                        .map((category) {
+                      String displayName =
+                          category[0].toUpperCase() + category.substring(1);
+
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 16.0),
                         child: Column(
@@ -388,7 +417,8 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                               children: [
                                 Expanded(
                                   child: RatingBar.builder(
-                                    initialRating: _ratingBreakdown[category] ?? 0,
+                                    initialRating:
+                                        _ratingBreakdown[category] ?? 0,
                                     minRating: 1,
                                     direction: Axis.horizontal,
                                     allowHalfRating: true,
@@ -424,9 +454,9 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Tags
               Container(
                 width: double.infinity,
@@ -485,7 +515,8 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: isSelected ? primaryColor : Colors.grey[200],
+                              color:
+                                  isSelected ? primaryColor : Colors.grey[200],
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
@@ -494,7 +525,8 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                                 fontFamily: 'Manrope',
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
-                                color: isSelected ? Colors.white : darkTextColor,
+                                color:
+                                    isSelected ? Colors.white : darkTextColor,
                               ),
                             ),
                           ),
@@ -504,9 +536,9 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Review Text
               Container(
                 width: double.infinity,
@@ -569,9 +601,9 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Anonymous indicator (not editable)
               Container(
                 width: double.infinity,
@@ -594,7 +626,9 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _isAnonymous ? "Posted Anonymously" : "Posted with Your Name",
+                            _isAnonymous
+                                ? "Posted Anonymously"
+                                : "Posted with Your Name",
                             style: const TextStyle(
                               fontFamily: 'Manrope',
                               fontSize: 16,
@@ -604,7 +638,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            _isAnonymous 
+                            _isAnonymous
                                 ? "Your name isn't visible with this review"
                                 : "Your name is visible with this review",
                             style: const TextStyle(
@@ -623,9 +657,9 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Update Button
               SizedBox(
                 width: double.infinity,
@@ -642,7 +676,8 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                   ),
                   child: _isSubmitting
                       ? const CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
                         )
                       : const Text(
                           "Update Review",
@@ -655,7 +690,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
                         ),
                 ),
               ),
-              
+
               const SizedBox(height: 24),
             ],
           ),
@@ -663,7 +698,7 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
       ),
     );
   }
-  
+
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -711,7 +746,8 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
             ),
             filled: true,
             fillColor: readOnly ? Colors.grey[100] : Colors.grey[50],
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
         ),
       ],
