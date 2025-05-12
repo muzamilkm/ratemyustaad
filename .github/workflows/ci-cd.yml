@@ -139,9 +139,6 @@ jobs:
           name: web-build
           path: build/web
 
-      # - name: Firebase Service Account
-      #   run: echo "FIREBASE_SERVICE_ACCOUNT=$(echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' | base64 --decode)" >> $GITHUB_ENV
-
       - name: 📦 Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
