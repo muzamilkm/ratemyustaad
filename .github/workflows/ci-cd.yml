@@ -148,3 +148,4 @@ jobs:
           projectId: rate-my-ustaad
         env:
           FIREBASE_CLI_PREVIEWS: hostingchannels
+          FIREBASE_CLI_EXPERIMENTS: webframeworks
