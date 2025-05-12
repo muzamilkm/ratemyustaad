@@ -274,6 +274,186 @@ class UserService {
   Future<void> signOut() async {
     await _auth.signOut();
   }
+  // Admin-related methods
+  Future<bool> isUserAdmin() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        return false;
+      }
+      
+      final adminDoc = await _firestore.collection('admins').doc(user.uid).get();
+      return adminDoc.exists;
+    } catch (e) {
+      print('Error checking if user is admin: $e');
+      return false;
+    }
+  }
+  
+  // Find a user by email
+  Future<String?> findUserIdByEmail(String email) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .limit(1)
+          .get();
+      
+      if (querySnapshot.docs.isEmpty) {
+        return null;
+      }
+      
+      return querySnapshot.docs.first.id;
+    } catch (e) {
+      print('Error finding user by email: $e');
+      return null;
+    }
+  }
+  
+  Future<bool> addAdmin(String userId) async {
+    try {
+      final currentUser = _auth.currentUser;
+      if (currentUser == null) {
+        return false;
+      }
+      
+      // Check if current user is an admin
+      final isAdmin = await isUserAdmin();
+      if (!isAdmin) {
+        return false;
+      }
+      
+      // Get the user data to include in the admin document
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      if (!userDoc.exists) {
+        return false;
+      }
+      
+      final userData = userDoc.data() as Map<String, dynamic>;
+      
+      // Add the user to the admins collection
+      await _firestore.collection('admins').doc(userId).set({
+        'userId': userId,
+        'email': userData['email'] ?? '',
+        'firstName': userData['firstName'] ?? '',
+        'lastName': userData['lastName'] ?? '',
+        'addedBy': currentUser.uid,
+        'addedOn': FieldValue.serverTimestamp(),
+      });
+      
+      return true;
+    } catch (e) {
+      print('Error adding admin: $e');
+      return false;
+    }
+  }
+  
+  Future<bool> removeAdmin(String userId) async {
+    try {
+      final currentUser = _auth.currentUser;
+      if (currentUser == null) {
+        return false;
+      }
+      
+      // Check if current user is an admin
+      final isAdmin = await isUserAdmin();
+      if (!isAdmin) {
+        return false;
+      }
+      
+      // Don't allow admins to remove themselves
+      if (userId == currentUser.uid) {
+        return false;
+      }
+      
+      // Remove the user from the admins collection
+      await _firestore.collection('admins').doc(userId).delete();
+      
+      return true;
+    } catch (e) {
+      print('Error removing admin: $e');
+      return false;
+    }
+  }
+    Future<List<Map<String, dynamic>>> getAllAdmins() async {
+    try {
+      final currentUser = _auth.currentUser;
+      if (currentUser == null) {
+        return [];
+      }
+      
+      // Check if current user is an admin
+      final isAdmin = await isUserAdmin();
+      if (!isAdmin) {
+        return [];
+      }
+      
+      // Get all admins
+      final adminsSnapshot = await _firestore.collection('admins').get();
+      
+      return adminsSnapshot.docs.map((doc) {
+        final data = doc.data();
+        return {
+          'userId': doc.id,
+          'email': data['email'] ?? '',
+          'firstName': data['firstName'] ?? '',
+          'lastName': data['lastName'] ?? '',
+          'addedBy': data['addedBy'] ?? '',
+          'addedOn': data['addedOn'] != null 
+              ? (data['addedOn'] as Timestamp).toDate().toString() 
+              : '',
+        };
+      }).toList();
+    } catch (e) {
+      print('Error getting all admins: $e');
+      return [];
+    }
+  }
+  
+  // Find an admin by email
+  Future<Map<String, dynamic>?> findAdminByEmail(String email) async {
+    try {
+      final currentUser = _auth.currentUser;
+      if (currentUser == null) {
+        return null;
+      }
+      
+      // Check if current user is an admin
+      final isAdmin = await isUserAdmin();
+      if (!isAdmin) {
+        return null;
+      }
+      
+      // Get admin with matching email
+      final adminsSnapshot = await _firestore
+          .collection('admins')
+          .where('email', isEqualTo: email)
+          .limit(1)
+          .get();
+      
+      if (adminsSnapshot.docs.isEmpty) {
+        return null;
+      }
+      
+      final doc = adminsSnapshot.docs.first;
+      final data = doc.data();
+      
+      return {
+        'userId': doc.id,
+        'email': data['email'] ?? '',
+        'firstName': data['firstName'] ?? '',
+        'lastName': data['lastName'] ?? '',
+        'addedBy': data['addedBy'] ?? '',
+        'addedOn': data['addedOn'] != null 
+            ? (data['addedOn'] as Timestamp).toDate().toString() 
+            : '',
+      };
+    } catch (e) {
+      print('Error finding admin by email: $e');
+      return null;
+    }
+  }
+
   // Check review content with censorship API with fallback
   Future<Map<String, dynamic>> checkReviewContent(String reviewText) async {
     try {

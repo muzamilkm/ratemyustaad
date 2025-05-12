@@ -12,6 +12,7 @@ import '../reviews/teacher_detail_screen.dart';
 import '../reviews/review_submit_screen.dart';
 import '../reviews/review_edit_screen.dart';
 import '../search/teacher_search_screen.dart';
+import '../admin/admin_dashboard_screen.dart';
 
 // TEMPORARY FIX: Simplified queries to work around missing Firestore composite indexes
 // TODO: Once the following indexes are created, revert to original queries:
@@ -35,6 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
   
   // Service instances
   final TeacherService _teacherService = TeacherService();
+  final UserService _userService = UserService();
   
   // Text styles for reuse
   static const TextStyle headingStyle = TextStyle(
@@ -64,12 +66,14 @@ class _HomeScreenState extends State<HomeScreen> {
   
   // User data
   String? _userName;
+  bool _isAdmin = false;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    _checkIfAdmin();
   }
   
   Future<void> _loadUserData() async {
@@ -93,6 +97,17 @@ class _HomeScreenState extends State<HomeScreen> {
       debugPrint('Error loading user data: $e');
     }
   }
+  
+  Future<void> _checkIfAdmin() async {
+    try {
+      final isAdmin = await _userService.isUserAdmin();
+      setState(() {
+        _isAdmin = isAdmin;
+      });
+    } catch (e) {
+      debugPrint('Error checking admin status: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,6 +126,19 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
+          // Admin button (only for admin users)
+          if (_isAdmin)
+            IconButton(
+              icon: const Icon(Icons.admin_panel_settings, color: darkTextColor),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AdminDashboardScreen(),
+                  ),
+                );
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.account_circle_outlined, color: darkTextColor),
             onPressed: () {
