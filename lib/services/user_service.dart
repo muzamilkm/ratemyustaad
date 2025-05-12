@@ -274,7 +274,6 @@ class UserService {
   Future<void> signOut() async {
     await _auth.signOut();
   }
-
   // Check review content with censorship API with fallback
   Future<Map<String, dynamic>> checkReviewContent(String reviewText) async {
     try {
@@ -322,6 +321,76 @@ class UserService {
       rethrow;
     }
   }
+  
+  // Store rejected review in the rejectedReviews collection
+  Future<bool> storeRejectedReview({
+    required String reviewText,
+    required String teacherName,
+    required String teacherDepartment,
+    required double rating,
+    required Map<String, double> ratingBreakdown,
+    String? institution,
+    String? courseCode,
+    String? courseName,
+    List<String> tags = const [],
+    bool isAnonymous = false,
+    String? rejectionReason,
+  }) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        return false;
+      }
+      
+      // Get user data from Firestore
+      final userDoc = await _firestore.collection('users').doc(user.uid).get();
+      final userData = userDoc.data() as Map<String, dynamic>? ?? {};
+      
+      // Find teacher ID (if the teacher exists)
+      String? teacherId;
+      String normalizedName = teacherName.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
+      String normalizedDepartment = teacherDepartment.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
+      String formattedTeacherId = '${normalizedName}_${normalizedDepartment}';
+      
+      try {
+        final teacherDoc = await _firestore.collection('teachers').doc(formattedTeacherId).get();
+        if (teacherDoc.exists) {
+          teacherId = teacherDoc.id;
+        }
+      } catch (e) {
+        print('Error finding teacher for rejected review: $e');
+      }
+      
+      // Create rejected review document
+      final rejectedReview = {
+        'teacherId': teacherId,
+        'teacherName': teacherName.trim(),
+        'teacherDepartment': teacherDepartment.trim(),
+        'institution': institution?.trim() ?? '',
+        'userId': user.uid,
+        'userName': isAnonymous ? 'Anonymous' : (userData['firstName'] ?? '') + ' ' + (userData['lastName'] ?? ''),
+        'userEmail': user.email ?? '',
+        'text': reviewText.trim(),
+        'rating': rating,
+        'ratingBreakdown': ratingBreakdown,
+        'tags': tags,
+        'timestamp': FieldValue.serverTimestamp(),
+        'courseCode': courseCode?.trim() ?? '',
+        'courseName': courseName?.trim() ?? '',
+        'isAnonymous': isAnonymous,
+        'rejectionReason': rejectionReason ?? 'Content flagged by AI content checker',
+        'reviewedByModerator': false,
+      };
+      
+      // Store in the rejectedReviews collection
+      await _firestore.collection('rejectedReviews').add(rejectedReview);
+      
+      return true;
+    } catch (e) {
+      print('Error storing rejected review: $e');
+      return false;
+    }
+  }
 
   // Local validation fallback when censorship API is unavailable
   Map<String, dynamic> _performBasicLocalValidation(String reviewText) {
@@ -340,9 +409,7 @@ class UserService {
     ];
 
     // Convert to lowercase for case-insensitive matching
-    final String lowerText = reviewText.toLowerCase();
-
-    // Check if the review contains any profanity
+    final String lowerText = reviewText.toLowerCase();      // Check if the review contains any profanity
     for (final word in profanityList) {
       if (lowerText.contains(word)) {
         return {

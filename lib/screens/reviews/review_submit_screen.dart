@@ -98,9 +98,7 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
     if (_validateForm()) {
       setState(() {
         _isSubmitting = true;
-      });
-
-      try {
+      });      try {
         // Check the review content first
         final reviewText = _reviewTextController.text;
         try {
@@ -108,6 +106,21 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
 
           // Check if the review was accepted
           if (censorship['accepted'] != true) {
+            // Store the rejected review in the rejectedReviews collection
+            await _userService.storeRejectedReview(
+              reviewText: reviewText,
+              teacherName: _teacherNameController.text,
+              teacherDepartment: _departmentController.text,
+              rating: _overallRating,
+              ratingBreakdown: _ratingBreakdown,
+              institution: _institutionController.text,
+              courseCode: _courseCodeController.text,
+              courseName: _courseNameController.text,
+              tags: _selectedTags,
+              isAnonymous: _isAnonymous,
+              rejectionReason: censorship['reason'],
+            );
+            
             // Review was rejected by the AI, show the appropriate message
             _showError(
                 "Your review contains inappropriate language as detected by our AI. Please rewrite your review and try again.");

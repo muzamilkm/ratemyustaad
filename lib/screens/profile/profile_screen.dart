@@ -7,6 +7,7 @@ import '../../models/teacher.dart';
 import '../../services/user_service.dart';
 import '../reviews/teacher_detail_screen.dart';
 import '../reviews/review_edit_screen.dart';
+import '../reviews/rejected_reviews_screen.dart';
 import 'edit_profile_screen.dart';
 import 'change_email_screen.dart';
 import 'change_password_screen.dart';
@@ -219,6 +220,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => const ChangePasswordScreen(),
+                ),
+              );
+            },
+          ),
+          const Divider(height: 1),
+          _buildActionTile(
+            'Rejected Reviews',
+            Icons.error_outline,
+            () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const RejectedReviewsScreen(),
                 ),
               );
             },
