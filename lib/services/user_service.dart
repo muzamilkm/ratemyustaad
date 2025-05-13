@@ -602,9 +602,209 @@ class UserService {
 
     // If no profanity is found, accept the review
     return {
-      'accepted': true,
-      'reason':
+      'accepted': true,      'reason':
           'The review was accepted (using local validation due to API unavailability).'
     };
+  }
+  
+  // Check if a user is banned
+  Future<bool> isUserBanned(String userId) async {
+    try {
+      final docSnapshot = await _firestore.collection('bannedUsers').doc(userId).get();
+      return docSnapshot.exists;
+    } catch (e) {
+      print('Error checking if user is banned: $e');
+      return false;
+    }
+  }
+  
+  // Ban a user
+  Future<bool> banUser(String userId, String reason) async {
+    try {
+      // Get current admin information
+      final adminId = _auth.currentUser?.uid;
+      if (adminId == null) return false;
+      
+      // Get user information
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      if (!userDoc.exists) return false;
+      
+      final userData = userDoc.data() ?? {};
+      
+      // Create banned user record
+      await _firestore.collection('bannedUsers').doc(userId).set({
+        'email': userData['email'] ?? '',
+        'firstName': userData['firstName'] ?? '',
+        'lastName': userData['lastName'] ?? '',
+        'banReason': reason.isNotEmpty ? reason : 'Violation of terms of service',
+        'bannedBy': adminId,
+        'adminEmail': _auth.currentUser?.email ?? 'Unknown',
+        'bannedAt': Timestamp.now(),
+      });
+      
+      return true;
+    } catch (e) {
+      print('Error banning user: $e');
+      return false;
+    }
+  }
+  
+  // Unban a user
+  Future<bool> unbanUser(String userId) async {
+    try {
+      await _firestore.collection('bannedUsers').doc(userId).delete();
+      return true;
+    } catch (e) {
+      print('Error unbanning user: $e');
+      return false;
+    }
+  }
+  
+  // Get all banned users
+  Future<List<Map<String, dynamic>>> getBannedUsers() async {
+    try {
+      final querySnapshot = await _firestore.collection('bannedUsers').get();
+      
+      return querySnapshot.docs.map((doc) {
+        final data = doc.data();
+        return {
+          'userId': doc.id,
+          'email': data['email'] ?? '',
+          'firstName': data['firstName'] ?? '',
+          'lastName': data['lastName'] ?? '',
+          'banReason': data['banReason'] ?? '',
+          'bannedBy': data['bannedBy'] ?? '',
+          'adminEmail': data['adminEmail'] ?? '',
+          'bannedAt': data['bannedAt'] ?? Timestamp.now(),
+        };
+      }).toList();
+    } catch (e) {
+      print('Error getting banned users: $e');
+      return [];
+    }
+  }
+    // Search for users by name or email with support for partial matching
+  Future<List<Map<String, dynamic>>> searchUsers(String query) async {
+    try {
+      query = query.trim();
+      final lowerQuery = query.toLowerCase();
+      final Set<String> userIds = {};
+      final List<Map<String, dynamic>> results = [];
+      
+      // Get all users if the query is very short (for better UX)
+      if (query.length < 2) {
+        // If query is too short, return limited results to prevent loading too many users
+        final allUsers = await _firestore
+            .collection('users')
+            .limit(20)
+            .get();
+            
+        // Get list of banned users for checking status
+        final bannedUsersSnapshot = await _firestore.collection('bannedUsers').get();
+        final Set<String> bannedUserIds = bannedUsersSnapshot.docs.map((doc) => doc.id).toSet();
+        
+        for (final doc in allUsers.docs) {
+          final userId = doc.id;
+          final data = doc.data();
+          
+          results.add({
+            'userId': userId,
+            'email': data['email'] ?? '',
+            'firstName': data['firstName'] ?? '',
+            'lastName': data['lastName'] ?? '',
+            'photoURL': data['photoURL'] ?? '',
+            'isBanned': bannedUserIds.contains(userId),
+          });
+        }
+        
+        return results;
+      }
+      
+      // Perform multiple targeted queries
+      
+      // 1. Search by exact email match
+      final exactEmailQuery = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: lowerQuery)
+          .get();
+      
+      // 2. Search by first name (partial match)
+      final firstNameQuery = await _firestore
+          .collection('users')
+          .where('firstName', isGreaterThanOrEqualTo: query)
+          .where('firstName', isLessThanOrEqualTo: '$query\uf8ff')
+          .get();
+      
+      // 3. Search by last name (partial match)
+      final lastNameQuery = await _firestore
+          .collection('users')
+          .where('lastName', isGreaterThanOrEqualTo: query)
+          .where('lastName', isLessThanOrEqualTo: '$query\uf8ff')
+          .get();
+          
+      // 4. For email partial matching, we'll need to load users and filter client-side
+      // This is because Firestore doesn't support substring queries directly
+      // We'll limit this query to avoid performance issues
+      final emailPartialQuery = await _firestore
+          .collection('users')
+          .limit(100) // Limit to prevent loading too many users
+          .get();
+      
+      // Process results
+      final allDocs = [
+        ...exactEmailQuery.docs,
+        ...firstNameQuery.docs,
+        ...lastNameQuery.docs,
+      ];
+      
+      // Get list of banned users for checking status
+      final bannedUsersSnapshot = await _firestore.collection('bannedUsers').get();
+      final Set<String> bannedUserIds = bannedUsersSnapshot.docs.map((doc) => doc.id).toSet();
+      
+      // First process the direct query results (more precise matches)
+      for (final doc in allDocs) {
+        final userId = doc.id;
+        if (userIds.contains(userId)) continue;
+        
+        userIds.add(userId);
+        final data = doc.data();
+        
+        results.add({
+          'userId': userId,
+          'email': data['email'] ?? '',
+          'firstName': data['firstName'] ?? '',
+          'lastName': data['lastName'] ?? '',
+          'photoURL': data['photoURL'] ?? '',
+          'isBanned': bannedUserIds.contains(userId),
+        });
+      }
+      
+      // Then process the partial email matches
+      for (final doc in emailPartialQuery.docs) {
+        final userId = doc.id;
+        if (userIds.contains(userId)) continue; // Skip if already added
+        
+        final data = doc.data();
+        final email = (data['email'] ?? '').toLowerCase();
+        
+        // Check if email contains the query string
+        if (email.contains(lowerQuery)) {
+          userIds.add(userId);
+          
+          results.add({
+            'userId': userId,
+            'email': data['email'] ?? '',
+            'firstName': data['firstName'] ?? '',
+            'lastName': data['lastName'] ?? '',
+            'photoURL': data['photoURL'] ?? '',
+            'isBanned': bannedUserIds.contains(userId),
+          });
+        }
+      }      
+      return results;
+    } catch (e) {
+      print('Error searching users: $e');
+      return [];
+    }
   }
 }

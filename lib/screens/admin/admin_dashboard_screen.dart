@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/user_service.dart';
 import './admin_management_screen.dart';
 import './rejected_reviews_screen.dart';
+import './user_management_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -116,6 +117,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     ).then((_) => _loadDashboardData());
   }
   
+  void _navigateToUserManagement(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const UserManagementScreen(),
+      ),
+    ).then((_) => _loadDashboardData());
+  }
+  
   // Function card widget for dashboard
   Widget _buildFunctionCard(
     String title, 
@@ -133,9 +143,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 12), // Adjusted padding
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start, // Changed from center to start
             children: [
               Stack(
                 alignment: Alignment.center,
@@ -196,11 +206,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   description,
                   style: const TextStyle(
                     fontFamily: 'Manrope',
-                    fontSize: 12,
+                    fontSize: 13,
                     color: hintTextColor,
+                    height: 1.2, // Improved line height for readability
                   ),
                   textAlign: TextAlign.center,
-                  maxLines: 3,
+                  maxLines: 4, // Increased from 3 to 4 lines
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -305,14 +316,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       crossAxisCount: 2,
                       mainAxisSpacing: 16,
                       crossAxisSpacing: 16,
-                      childAspectRatio: 0.95, // Increased size by making aspect ratio smaller
+                      childAspectRatio: 0.8, // Further increased height by reducing aspect ratio
                       children: [
                         // Admin Management Card
                         _buildFunctionCard(
                           'Admin Management',
                           Icons.people,
                           Colors.indigo,
-                          'Manage admin users who can access this dashboard',
+                          'Add or remove admin privileges for users to control access to this dashboard',
                           () => _navigateToAdminManagement(context),
                           count: _adminsCount,
                         ),
@@ -322,18 +333,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           'Rejected Reviews',
                           Icons.report_problem,
                           Colors.orange,
-                          'View reviews that were rejected by AI moderation',
+                          'View and moderate reviews that were flagged by automatic content filters',
                           () => _navigateToRejectedReviews(context),
                           count: _rejectedReviewsCount,
                         ),
                         
-                        // User Management Card (future)
+                        // User Management Card
                         _buildFunctionCard(
                           'User Management',
                           Icons.manage_accounts,
                           Colors.green,
-                          'Manage users and handle user reports',
-                          () => _showFeatureNotAvailable(context, 'User Management'),
+                          'Search for users, ban or unban accounts, and manage user access to the platform',
+                          () => _navigateToUserManagement(context),
                         ),
                       ],
                     )

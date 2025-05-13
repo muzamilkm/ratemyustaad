@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'dart:async';
 import '../../providers/auth_provider.dart' as app_auth;
 import '../../models/teacher.dart';
 import '../../models/review.dart';
@@ -68,12 +69,68 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _userName;
   bool _isAdmin = false;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  Timer? _banCheckTimer;
   
   @override
   void initState() {
     super.initState();
     _loadUserData();
     _checkIfAdmin();
+    _setupBanCheck();
+  }
+  
+  @override
+  void dispose() {
+    _banCheckTimer?.cancel();
+    super.dispose();
+  }
+  
+  // Set up periodic check for banned status
+  void _setupBanCheck() {
+    // Check immediately
+    _checkIfUserBanned();
+    
+    // Then check every 5 minutes while app is in use
+    _banCheckTimer = Timer.periodic(const Duration(minutes: 5), (_) {
+      _checkIfUserBanned();
+    });
+  }
+  
+  Future<void> _checkIfUserBanned() async {
+    try {
+      final authProvider = Provider.of<app_auth.AuthProvider>(context, listen: false);
+      if (authProvider.isAuthenticated) {
+        final isBanned = await authProvider.isUserBanned();
+        if (isBanned && mounted) {
+          // User has been banned, sign them out and show message
+          await authProvider.signOut();
+          
+          // Show alert dialog
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => AlertDialog(
+              title: const Text('Account Banned'),
+              content: const Text(
+                'Your account has been banned due to a violation of our terms of service. '
+                'If you believe this is an error, please contact support.'
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    // Navigate to landing page
+                    Navigator.of(context).pushNamedAndRemoveUntil('/landing', (route) => false);
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error checking banned status: $e');
+    }
   }
   
   Future<void> _loadUserData() async {
