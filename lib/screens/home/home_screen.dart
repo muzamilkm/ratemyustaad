@@ -773,7 +773,7 @@ class ReviewCard extends StatelessWidget {
                     ),
                   ),
                 ),
-              // Timestamp
+              // Timestamp and Actions
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -785,59 +785,71 @@ class ReviewCard extends StatelessWidget {
                       color: _HomeScreenState.hintTextColor,
                     ),
                   ),
-                  // If current user owns this review, show edit/delete buttons
-                  if (isOwner)
-                    Row(
-                      children: [
-                        // Edit button
-                        IconButton(
-                          icon: const Icon(Icons.edit, size: 18),
-                          color: _HomeScreenState.primaryColor,
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          onPressed: () async {
-                            final result = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ReviewEditScreen(review: review),
+                  
+                  // Controls based on user roles
+                  FutureBuilder<bool>(
+                    future: userService.isUserAdmin(),
+                    builder: (context, snapshot) {
+                      final isAdmin = snapshot.data == true;
+                      
+                      if (isOwner || isAdmin) {
+                        return Row(
+                          children: [
+                            // Edit button (only for owners)
+                            if (isOwner)
+                              IconButton(
+                                icon: const Icon(Icons.edit, size: 18),
+                                color: _HomeScreenState.primaryColor,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                onPressed: () async {
+                                  final result = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ReviewEditScreen(review: review),
+                                    ),
+                                  );
+                                  
+                                  if (result == true) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Review updated, pull down to refresh'),
+                                        duration: Duration(seconds: 2),
+                                      ),
+                                    );
+                                  }
+                                },
                               ),
-                            );
                             
-                            if (result == true) {
-                              // Need to refresh the parent widget
-                              // This is done through the parent's state
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Review updated, pull down to refresh'),
-                                  duration: Duration(seconds: 2),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                        const SizedBox(width: 8),
-                        // Delete button
-                        IconButton(
-                          icon: const Icon(Icons.delete, size: 18),
-                          color: Colors.red,
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          onPressed: () {
-                            _confirmDeleteReview(context, review, userService);
-                          },
-                        ),
-                      ],
-                    )
-                  else
-                    const Text(
-                      'Read more',
-                      style: TextStyle(
-                        fontFamily: 'Manrope',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: _HomeScreenState.primaryColor,
-                      ),
-                    ),
+                            if (isOwner)
+                              const SizedBox(width: 8),
+                              
+                            // Delete button (for owners and admins)
+                            IconButton(
+                              icon: const Icon(Icons.delete, size: 18),
+                              color: Colors.red,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              onPressed: () {
+                                _confirmDeleteReview(context, review, userService);
+                              },
+                            ),
+                          ],
+                        );
+                      } else {
+                        // For regular users
+                        return const Text(
+                          'Read more',
+                          style: TextStyle(
+                            fontFamily: 'Manrope',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: _HomeScreenState.primaryColor,
+                          ),
+                        );
+                      }
+                    },
+                  ),
                 ],
               ),
             ],

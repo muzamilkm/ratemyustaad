@@ -159,7 +159,6 @@ class UserService {
       rethrow; // Rethrow to show specific error to user
     }
   }
-
   // Delete a review
   Future<bool> deleteReview(String reviewId) async {
     try {
@@ -168,7 +167,7 @@ class UserService {
         return false;
       }
 
-      // Get the review first to check if it belongs to the user
+      // Get the review first
       final reviewDoc =
           await _firestore.collection('reviews').doc(reviewId).get();
 
@@ -178,8 +177,11 @@ class UserService {
 
       final reviewData = reviewDoc.data() as Map<String, dynamic>;
 
-      // Verify that the review belongs to the current user
-      if (reviewData['userId'] != user.uid) {
+      // Check if the current user is an admin
+      final isAdmin = await isUserAdmin();
+      
+      // Verify that the review belongs to the current user or the user is an admin
+      if (reviewData['userId'] != user.uid && !isAdmin) {
         return false;
       }
 

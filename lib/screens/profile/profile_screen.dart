@@ -9,6 +9,7 @@ import '../../services/auth_service.dart';
 import '../reviews/teacher_detail_screen.dart';
 import '../reviews/review_edit_screen.dart';
 import '../reviews/rejected_reviews_screen.dart';
+import '../reviews/admin_review_actions.dart';
 import 'edit_profile_screen.dart';
 import 'change_email_screen.dart';
 import 'change_password_screen.dart';
@@ -29,16 +30,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic>? _userData;
   List<Review> _userReviews = [];
   bool _isGoogleUser = false;
+  bool _isAdmin = false;
+  
   
   @override
   void initState() {
     super.initState();
     _loadUserData();
     _checkAuthProvider();
+    _checkAdminStatus();
   }
   
   void _checkAuthProvider() {
     _isGoogleUser = _authService.isUserSignedInWithGoogle();
+  }
+  
+  Future<void> _checkAdminStatus() async {
+    try {
+      final isAdmin = await _userService.isUserAdmin();
+      setState(() {
+        _isAdmin = isAdmin;
+      });
+    } catch (e) {
+      print('Error checking admin status: $e');
+    }
   }
   
   Future<void> _loadUserData() async {
