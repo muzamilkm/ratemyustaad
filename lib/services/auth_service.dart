@@ -78,7 +78,6 @@ class AuthService {
   Future<void> signOut() async {
     await _auth.signOut();
   }
-
   // Check if current user is banned
   Future<bool> isCurrentUserBanned() async {
     final user = _auth.currentUser;
@@ -95,5 +94,19 @@ class AuthService {
       print('Error checking if user is banned: $e');
       return false;
     }
+  }
+  
+  // Check if user is signed in with Google
+  bool isUserSignedInWithGoogle() {
+    final user = _auth.currentUser;
+    if (user == null) return false;
+    
+    for (var userInfo in user.providerData) {
+      if (userInfo.providerId == 'google.com') {
+        return true;
+      }
+    }
+    
+    return false;
   }
 }

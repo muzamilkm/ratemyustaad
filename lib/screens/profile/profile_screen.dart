@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../models/review.dart';
 import '../../models/teacher.dart';
 import '../../services/user_service.dart';
+import '../../services/auth_service.dart';
 import '../reviews/teacher_detail_screen.dart';
 import '../reviews/review_edit_screen.dart';
 import '../reviews/rejected_reviews_screen.dart';
@@ -22,15 +23,22 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final UserService _userService = UserService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final AuthService _authService = AuthService();
   
   bool _isLoading = true;
   Map<String, dynamic>? _userData;
   List<Review> _userReviews = [];
+  bool _isGoogleUser = false;
   
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    _checkAuthProvider();
+  }
+  
+  void _checkAuthProvider() {
+    _isGoogleUser = _authService.isUserSignedInWithGoogle();
   }
   
   Future<void> _loadUserData() async {
@@ -135,43 +143,80 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Row(
+        child: Column(
           children: [
-            CircleAvatar(
-              radius: 40,
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              child: Text(
-                (firstName.isNotEmpty ? firstName[0] : 'U').toUpperCase(),
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 40,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  child: Text(
+                    (firstName.isNotEmpty ? firstName[0] : 'U').toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        fullName.trim().isNotEmpty ? fullName : 'User',
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        email,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            
+            // Google Sign-in indicator
+            if (_isGoogleUser) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.network(
+                      'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
+                      width: 18,
+                      height: 18,
+                      errorBuilder: (context, error, stackTrace) => 
+                          const Icon(Icons.login, size: 18, color: Colors.red),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Signed in with Google',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    fullName.trim().isNotEmpty ? fullName : 'User',
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    email,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            ],
           ],
         ),
       ),
@@ -211,19 +256,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ).then((_) => _loadUserData());
             },
           ),
-          const Divider(height: 1),
-          _buildActionTile(
-            'Change Password',
-            Icons.lock,
-            () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ChangePasswordScreen(),
-                ),
-              );
-            },
-          ),
+          if (!_isGoogleUser) ...[
+            const Divider(height: 1),
+            _buildActionTile(
+              'Change Password',
+              Icons.lock,
+              () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ChangePasswordScreen(),
+                  ),
+                );
+              },
+            ),
+          ],
           const Divider(height: 1),
           _buildActionTile(
             'Rejected Reviews',

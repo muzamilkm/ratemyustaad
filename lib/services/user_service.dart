@@ -75,7 +75,6 @@ class UserService {
       return false;
     }
   }
-
   // Update user email
   Future<bool> updateUserEmail(String newEmail, String password) async {
     try {
@@ -84,27 +83,44 @@ class UserService {
         return false;
       }
 
-      // Re-authenticate user first
-      final credential = EmailAuthProvider.credential(
-        email: user.email ?? '',
-        password: password,
-      );
+      // Check if the user is signed in with Google
+      bool isGoogleUser = false;
+      for (var userInfo in user.providerData) {
+        if (userInfo.providerId == 'google.com') {
+          isGoogleUser = true;
+          break;
+        }
+      }
 
-      await user.reauthenticateWithCredential(credential);
-      await user.updateEmail(newEmail);
+      if (isGoogleUser) {
+        // For Google users, we can't update email via Firebase Auth
+        // We can only update it in Firestore
+        await _firestore.collection('users').doc(user.uid).update({
+          'email': newEmail,
+        });
+        return true;
+      } else {
+        // For email/password users, re-authenticate and update email
+        final credential = EmailAuthProvider.credential(
+          email: user.email ?? '',
+          password: password,
+        );
 
-      // Update email in Firestore as well
-      await _firestore.collection('users').doc(user.uid).update({
-        'email': newEmail,
-      });
+        await user.reauthenticateWithCredential(credential);
+        await user.updateEmail(newEmail);
 
-      return true;
+        // Update email in Firestore as well
+        await _firestore.collection('users').doc(user.uid).update({
+          'email': newEmail,
+        });
+
+        return true;
+      }
     } catch (e) {
       print('Error updating user email: $e');
       return false;
     }
   }
-
   // Update user password
   Future<bool> updateUserPassword(
       String currentPassword, String newPassword) async {
@@ -114,19 +130,33 @@ class UserService {
         return false;
       }
 
-      // Re-authenticate user first
-      final credential = EmailAuthProvider.credential(
-        email: user.email!,
-        password: currentPassword,
-      );
+      // Check if the user is signed in with Google
+      bool isGoogleUser = false;
+      for (var userInfo in user.providerData) {
+        if (userInfo.providerId == 'google.com') {
+          isGoogleUser = true;
+          break;
+        }
+      }
 
-      await user.reauthenticateWithCredential(credential);
-      await user.updatePassword(newPassword);
+      if (isGoogleUser) {
+        // For Google users, we can't update password
+        throw Exception('Google-authenticated users cannot change their password in this app. Please manage your Google account password separately.');
+      } else {
+        // For email/password users, re-authenticate and update password
+        final credential = EmailAuthProvider.credential(
+          email: user.email!,
+          password: currentPassword,
+        );
 
-      return true;
+        await user.reauthenticateWithCredential(credential);
+        await user.updatePassword(newPassword);
+
+        return true;
+      }
     } catch (e) {
       print('Error updating user password: $e');
-      return false;
+      rethrow; // Rethrow to show specific error to user
     }
   }
 
