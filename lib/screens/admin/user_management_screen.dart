@@ -86,8 +86,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       });
     }
   }
-  
-  Future<void> _searchUsers(String query) async {
+    Future<void> _searchUsers(String query, {bool isSubmitted = false}) async {
     setState(() {
       _isSearching = true;
       _searchQuery = query;
@@ -101,8 +100,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         _isSearching = false;
       });
       
-      // If search returned no results and has at least 3 characters, show a message
-      if (results.isEmpty && query.length >= 3) {
+      // Only show "no results" message if explicitly submitted (button click or Enter press)
+      if (isSubmitted && results.isEmpty && query.length >= 3) {
         _showSnackBar('No users found matching "$query". Try different search terms.', Colors.orange);
       }
     } catch (e) {
@@ -337,7 +336,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                     icon: const Icon(Icons.clear),
                                     onPressed: () {
                                       _searchController.clear();
-                                      _searchUsers('');
+                                      _searchUsers('', isSubmitted: false);
                                     },
                                   )
                                 : null,
@@ -352,23 +351,21 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                               vertical: 14,
                             ),
                           ),
-                          onChanged: (value) {
-                            // Auto-search if value is empty (to clear results)
+                          onChanged: (value) {                            // Auto-search if value is empty (to clear results)
                             // or if value has 3+ characters (for better UX)
                             if (value.isEmpty || value.length >= 3) {
-                              _searchUsers(value);
+                              _searchUsers(value, isSubmitted: false);
                             }
                           },
-                          onSubmitted: _searchUsers,
+                          onSubmitted: (value) => _searchUsers(value, isSubmitted: true),
                           textInputAction: TextInputAction.search,
                         ),
                         const SizedBox(height: 4),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            TextButton.icon(
-                              onPressed: () {
-                                _searchUsers(_searchController.text);
+                            TextButton.icon(                              onPressed: () {
+                                _searchUsers(_searchController.text, isSubmitted: true);
                               },
                               icon: const Icon(Icons.search, size: 16),
                               label: const Text('Search'),
