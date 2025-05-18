@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/teacher.dart';
 import '../../services/teacher_service.dart';
 import '../reviews/teacher_detail_screen.dart';
@@ -98,13 +97,6 @@ class _TeacherSearchScreenState extends State<TeacherSearchScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.school, color: Colors.white),
-            tooltip: 'Browse Departments',
-            onPressed: () {
-              Navigator.pushNamed(context, '/search/departments');
-            },
-          ),
           IconButton(
             icon: const Icon(Icons.tune, color: Colors.white),
             tooltip: 'Advanced Search',
@@ -251,62 +243,33 @@ class _TeacherSearchScreenState extends State<TeacherSearchScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/search/departments');
-                },
-                icon: const Icon(Icons.school, color: Colors.white),
-                label: const Text(
-                  'Browse Departments',
-                  style: TextStyle(
-                    fontFamily: 'Manrope',
-                    color: Colors.white,
-                  ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdvancedSearchScreen(),
                 ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
+              );
+            },
+            icon: const Icon(Icons.tune, color: Colors.white),
+            label: const Text(
+              'Advanced Search',
+              style: TextStyle(
+                fontFamily: 'Manrope',
+                color: Colors.white,
               ),
-              const SizedBox(width: 12),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AdvancedSearchScreen(),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.tune, color: Colors.white),
-                label: const Text(
-                  'Advanced Search',
-                  style: TextStyle(
-                    fontFamily: 'Manrope',
-                    color: Colors.white,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryColor,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
               ),
-            ],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
           ),
         ],
       ),
@@ -344,62 +307,33 @@ class _TeacherSearchScreenState extends State<TeacherSearchScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/search/departments');
-                },
-                icon: const Icon(Icons.school, color: Colors.white),
-                label: const Text(
-                  'Browse Departments',
-                  style: TextStyle(
-                    fontFamily: 'Manrope',
-                    color: Colors.white,
-                  ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdvancedSearchScreen(),
                 ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
+              );
+            },
+            icon: const Icon(Icons.tune, color: Colors.white),
+            label: const Text(
+              'Advanced Search',
+              style: TextStyle(
+                fontFamily: 'Manrope',
+                color: Colors.white,
               ),
-              const SizedBox(width: 12),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AdvancedSearchScreen(),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.add, color: Colors.white),
-                label: const Text(
-                  'Add a New Teacher',
-                  style: TextStyle(
-                    fontFamily: 'Manrope',
-                    color: Colors.white,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryColor,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
               ),
-            ],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
           ),
         ],
       ),

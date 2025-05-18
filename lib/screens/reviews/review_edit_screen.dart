@@ -104,24 +104,12 @@ class _ReviewEditScreenState extends State<ReviewEditScreen> {
 
       try {
         // Check the review content first
-        final reviewText = _reviewTextController.text;        try {
+        final reviewText = _reviewTextController.text;
+        try {
           final censorship = await _userService.checkReviewContent(reviewText);
 
           // Check if the review was accepted
           if (censorship['accepted'] != true) {
-            // Store the rejected edit in the rejectedReviews collection
-            await _userService.storeRejectedReview(
-              reviewText: reviewText,              teacherName: widget.review.teacherName,
-              teacherDepartment: widget.review.teacherDepartment,
-              rating: _overallRating,
-              ratingBreakdown: _ratingBreakdown,
-              courseCode: _courseCodeController.text,
-              courseName: _courseNameController.text,
-              tags: _selectedTags,
-              isAnonymous: widget.review.isAnonymous,
-              rejectionReason: censorship['reason'],
-            );
-            
             // Review was rejected by the AI, show the appropriate message
             _showError(
                 "Your review contains inappropriate language as detected by our AI. Please rewrite your review and try again.");

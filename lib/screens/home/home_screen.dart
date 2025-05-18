@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'dart:async';
 import '../../providers/auth_provider.dart' as app_auth;
 import '../../models/teacher.dart';
 import '../../models/review.dart';
@@ -13,7 +12,6 @@ import '../reviews/teacher_detail_screen.dart';
 import '../reviews/review_submit_screen.dart';
 import '../reviews/review_edit_screen.dart';
 import '../search/teacher_search_screen.dart';
-import '../admin/admin_dashboard_screen.dart';
 
 // TEMPORARY FIX: Simplified queries to work around missing Firestore composite indexes
 // TODO: Once the following indexes are created, revert to original queries:
@@ -37,7 +35,6 @@ class _HomeScreenState extends State<HomeScreen> {
   
   // Service instances
   final TeacherService _teacherService = TeacherService();
-  final UserService _userService = UserService();
   
   // Text styles for reuse
   static const TextStyle headingStyle = TextStyle(
@@ -67,70 +64,12 @@ class _HomeScreenState extends State<HomeScreen> {
   
   // User data
   String? _userName;
-  bool _isAdmin = false;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  Timer? _banCheckTimer;
   
   @override
   void initState() {
     super.initState();
     _loadUserData();
-    _checkIfAdmin();
-    _setupBanCheck();
-  }
-  
-  @override
-  void dispose() {
-    _banCheckTimer?.cancel();
-    super.dispose();
-  }
-  
-  // Set up periodic check for banned status
-  void _setupBanCheck() {
-    // Check immediately
-    _checkIfUserBanned();
-    
-    // Then check every 5 minutes while app is in use
-    _banCheckTimer = Timer.periodic(const Duration(minutes: 5), (_) {
-      _checkIfUserBanned();
-    });
-  }
-  
-  Future<void> _checkIfUserBanned() async {
-    try {
-      final authProvider = Provider.of<app_auth.AuthProvider>(context, listen: false);
-      if (authProvider.isAuthenticated) {
-        final isBanned = await authProvider.isUserBanned();
-        if (isBanned && mounted) {
-          // User has been banned, sign them out and show message
-          await authProvider.signOut();
-          
-          // Show alert dialog
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => AlertDialog(
-              title: const Text('Account Banned'),
-              content: const Text(
-                'Your account has been banned due to a violation of our terms of service. '
-                'If you believe this is an error, please contact support.'
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    // Navigate to landing page
-                    Navigator.of(context).pushNamedAndRemoveUntil('/landing', (route) => false);
-                  },
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      debugPrint('Error checking banned status: $e');
-    }
   }
   
   Future<void> _loadUserData() async {
@@ -154,17 +93,6 @@ class _HomeScreenState extends State<HomeScreen> {
       debugPrint('Error loading user data: $e');
     }
   }
-  
-  Future<void> _checkIfAdmin() async {
-    try {
-      final isAdmin = await _userService.isUserAdmin();
-      setState(() {
-        _isAdmin = isAdmin;
-      });
-    } catch (e) {
-      debugPrint('Error checking admin status: $e');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -183,19 +111,6 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
-          // Admin button (only for admin users)
-          if (_isAdmin)
-            IconButton(
-              icon: const Icon(Icons.admin_panel_settings, color: darkTextColor),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AdminDashboardScreen(),
-                  ),
-                );
-              },
-            ),
           IconButton(
             icon: const Icon(Icons.account_circle_outlined, color: darkTextColor),
             onPressed: () {
@@ -773,7 +688,7 @@ class ReviewCard extends StatelessWidget {
                     ),
                   ),
                 ),
-              // Timestamp and Actions
+              // Timestamp
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -785,71 +700,59 @@ class ReviewCard extends StatelessWidget {
                       color: _HomeScreenState.hintTextColor,
                     ),
                   ),
-                  
-                  // Controls based on user roles
-                  FutureBuilder<bool>(
-                    future: userService.isUserAdmin(),
-                    builder: (context, snapshot) {
-                      final isAdmin = snapshot.data == true;
-                      
-                      if (isOwner || isAdmin) {
-                        return Row(
-                          children: [
-                            // Edit button (only for owners)
-                            if (isOwner)
-                              IconButton(
-                                icon: const Icon(Icons.edit, size: 18),
-                                color: _HomeScreenState.primaryColor,
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                                onPressed: () async {
-                                  final result = await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => ReviewEditScreen(review: review),
-                                    ),
-                                  );
-                                  
-                                  if (result == true) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Review updated, pull down to refresh'),
-                                        duration: Duration(seconds: 2),
-                                      ),
-                                    );
-                                  }
-                                },
+                  // If current user owns this review, show edit/delete buttons
+                  if (isOwner)
+                    Row(
+                      children: [
+                        // Edit button
+                        IconButton(
+                          icon: const Icon(Icons.edit, size: 18),
+                          color: _HomeScreenState.primaryColor,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ReviewEditScreen(review: review),
                               ),
+                            );
                             
-                            if (isOwner)
-                              const SizedBox(width: 8),
-                              
-                            // Delete button (for owners and admins)
-                            IconButton(
-                              icon: const Icon(Icons.delete, size: 18),
-                              color: Colors.red,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                              onPressed: () {
-                                _confirmDeleteReview(context, review, userService);
-                              },
-                            ),
-                          ],
-                        );
-                      } else {
-                        // For regular users
-                        return const Text(
-                          'Read more',
-                          style: TextStyle(
-                            fontFamily: 'Manrope',
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: _HomeScreenState.primaryColor,
-                          ),
-                        );
-                      }
-                    },
-                  ),
+                            if (result == true) {
+                              // Need to refresh the parent widget
+                              // This is done through the parent's state
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Review updated, pull down to refresh'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        // Delete button
+                        IconButton(
+                          icon: const Icon(Icons.delete, size: 18),
+                          color: Colors.red,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () {
+                            _confirmDeleteReview(context, review, userService);
+                          },
+                        ),
+                      ],
+                    )
+                  else
+                    const Text(
+                      'Read more',
+                      style: TextStyle(
+                        fontFamily: 'Manrope',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: _HomeScreenState.primaryColor,
+                      ),
+                    ),
                 ],
               ),
             ],

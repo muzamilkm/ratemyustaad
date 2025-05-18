@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../services/user_service.dart';
-import '../../services/auth_service.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -12,7 +11,6 @@ class ChangePasswordScreen extends StatefulWidget {
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final UserService _userService = UserService();
-  final AuthService _authService = AuthService();
   
   late TextEditingController _currentPasswordController;
   late TextEditingController _newPasswordController;
@@ -22,7 +20,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   bool _obscureCurrentPassword = true;
   bool _obscureNewPassword = true;
   bool _obscureConfirmPassword = true;
-  bool _isGoogleUser = false;
   
   @override
   void initState() {
@@ -30,36 +27,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     _currentPasswordController = TextEditingController();
     _newPasswordController = TextEditingController();
     _confirmPasswordController = TextEditingController();
-    _checkAuthProvider();
-  }
-  
-  void _checkAuthProvider() {
-    _isGoogleUser = _authService.isUserSignedInWithGoogle();
-    
-    // If Google user, show message and pop screen after delay
-    if (_isGoogleUser) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => AlertDialog(
-            title: const Text('Google Account'),
-            content: const Text(
-              'You are signed in with Google. To change your password, please visit your Google account settings.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        );
-      });
-    }
   }
   
   @override
@@ -89,26 +56,17 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       
       if (result) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Password updated successfully'),
-            backgroundColor: Colors.green,
-          ),
+          const SnackBar(content: Text('Password updated successfully')),
         );
         Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to update password'),
-            backgroundColor: Colors.red,
-          ),
+          const SnackBar(content: Text('Failed to update password')),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Error: $e')),
       );
     } finally {
       if (mounted) {
@@ -118,7 +76,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       }
     }
   }
-  
   
   bool _isPasswordStrong(String password) {
     // Minimum 8 characters, at least one uppercase letter, one lowercase letter,
@@ -131,24 +88,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   
   @override
   Widget build(BuildContext context) {
-    // If it's a Google user, don't render the form since we'll show a dialog and navigate back
-    if (_isGoogleUser) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            'Change Password',
-            style: TextStyle(
-              fontFamily: 'Manrope',
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-    
     return Scaffold(
       appBar: AppBar(
         title: const Text(

@@ -17,6 +17,7 @@ class AuthProvider extends ChangeNotifier {
 
   // Auth state changes stream
   Stream<User?> get authStateChanges => _authService.authStateChanges;
+
   // Sign in with email and password
   Future<bool> signInWithEmail(String email, String password) async {
     _isLoading = true;
@@ -25,16 +26,6 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       await _authService.signInWithEmail(email, password);
-
-      // Check if user is banned
-      if (await _authService.isCurrentUserBanned()) {
-        // Sign out the user immediately
-        await _authService.signOut();
-        _error = "Your account has been banned. Please contact support for assistance.";
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
 
       // Get and save the token
       await _saveAuthToken();
@@ -52,6 +43,7 @@ class AuthProvider extends ChangeNotifier {
       return false;
     }
   }
+
   // Sign in with Google
   Future<bool> signInWithGoogle() async {
     _isLoading = true;
@@ -62,16 +54,6 @@ class AuthProvider extends ChangeNotifier {
       final userCredential = await _authService.signInWithGoogle();
       // If user canceled the sign-in process, userCredential will be null
       if (userCredential != null) {
-        // Check if user is banned
-        if (await _authService.isCurrentUserBanned()) {
-          // Sign out the user immediately
-          await _authService.signOut();
-          _error = "Your account has been banned. Please contact support for assistance.";
-          _isLoading = false;
-          notifyListeners();
-          return false;
-        }
-        
         // Get and save the token
         await _saveAuthToken();
       }
@@ -209,17 +191,6 @@ class AuthProvider extends ChangeNotifier {
       print('ERROR: Failed to get Firebase ID token: $e');
       developer.log('Error saving auth token: $e',
           name: 'AuthProvider', error: e);
-    }
-  }
-
-  // Check if the current user is banned
-  Future<bool> isUserBanned() async {
-    try {
-      if (!isAuthenticated) return false;
-      return await _authService.isCurrentUserBanned();
-    } catch (e) {
-      print('Error checking if user is banned: $e');
-      return false;
     }
   }
 }

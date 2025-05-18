@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -77,36 +76,5 @@ class AuthService {
   // Sign out
   Future<void> signOut() async {
     await _auth.signOut();
-  }
-  // Check if current user is banned
-  Future<bool> isCurrentUserBanned() async {
-    final user = _auth.currentUser;
-    if (user == null) return false;
-    
-    try {
-      final bannedDoc = await FirebaseFirestore.instance
-          .collection('bannedUsers')
-          .doc(user.uid)
-          .get();
-      
-      return bannedDoc.exists;
-    } catch (e) {
-      print('Error checking if user is banned: $e');
-      return false;
-    }
-  }
-  
-  // Check if user is signed in with Google
-  bool isUserSignedInWithGoogle() {
-    final user = _auth.currentUser;
-    if (user == null) return false;
-    
-    for (var userInfo in user.providerData) {
-      if (userInfo.providerId == 'google.com') {
-        return true;
-      }
-    }
-    
-    return false;
   }
 }

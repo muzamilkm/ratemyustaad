@@ -5,8 +5,6 @@ import 'package:intl/intl.dart';
 import '../../models/teacher.dart';
 import '../../models/review.dart';
 import '../../services/teacher_service.dart';
-import '../../services/user_service.dart';
-import 'admin_review_actions.dart';
 import 'review_submit_screen.dart';
 
 class TeacherDetailScreen extends StatefulWidget {
@@ -28,27 +26,13 @@ class _TeacherDetailScreenState extends State<TeacherDetailScreen> {
   static const accentColor = Color(0xFFE91E63); // Pink accent for some UI elements
   
   final TeacherService _teacherService = TeacherService();
-  final UserService _userService = UserService();
   List<Review> _reviews = [];
   bool _isLoading = true;
-  bool _isAdmin = false;
   
   @override
   void initState() {
     super.initState();
     _loadReviews();
-    _checkAdminStatus();
-  }
-  
-  Future<void> _checkAdminStatus() async {
-    try {
-      final isAdmin = await _userService.isUserAdmin();
-      setState(() {
-        _isAdmin = isAdmin;
-      });
-    } catch (e) {
-      print('Error checking admin status: $e');
-    }
   }
   
   Future<void> _loadReviews() async {
@@ -620,37 +604,11 @@ class _TeacherDetailScreenState extends State<TeacherDetailScreen> {
             ),
           ],
           
-          // Helpful button & Admin delete button
+          // Helpful button
           const SizedBox(height: 12),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              // Admin delete button - only visible to admins
-              if (_isAdmin)
-                GestureDetector(
-                  onTap: () => _confirmDeleteReview(review),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.delete_outline,
-                        size: 16,
-                        color: Colors.red,
-                      ),
-                      const SizedBox(width: 4),
-                      const Text(
-                        'Delete Review',
-                        style: TextStyle(
-                          fontFamily: 'Manrope',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.red,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              
-              // Helpful button - visible to everyone
               GestureDetector(
                 onTap: () async {
                   // Get current user
@@ -774,73 +732,5 @@ class _TeacherDetailScreenState extends State<TeacherDetailScreen> {
         ],
       ),
     );
-  }
-  
-  // Method to handle confirmation for review deletion
-  void _confirmDeleteReview(Review review) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Review'),
-        content: const Text(
-          'As an admin, you are about to delete this review. This action cannot be undone.',
-          style: TextStyle(
-            fontFamily: 'Manrope',
-            fontSize: 14,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _deleteReview(review);
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
-            ),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Future<void> _deleteReview(Review review) async {
-    setState(() {
-      _isLoading = true;
-    });
-    
-    try {
-      final success = await _userService.deleteReview(review.id);
-      
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Review deleted successfully')),
-        );
-        _loadReviews(); // Refresh the reviews
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to delete review'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
   }
 }
