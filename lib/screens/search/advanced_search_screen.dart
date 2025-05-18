@@ -37,6 +37,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
   // Available options for filters
   List<String> _availableDepartments = [];
   List<String> _availableInstitutions = [];
+  List<String> _filteredDepartments = []; // Departments filtered by institution
   List<String> _availableTags = [];
   final List<String> _sortOptions = ['rating', 'name', 'reviewCount'];
   final Map<String, String> _sortLabels = {
@@ -76,6 +77,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
       
       setState(() {
         _availableDepartments = departments;
+        _filteredDepartments = departments; // Initially all departments
         _availableInstitutions = institutions;
         _availableTags = tags;
         _isLoading = false;
@@ -83,6 +85,28 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
     } catch (e) {
       print('Error loading filter options: $e');
       setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+  
+  // Load departments for selected institution
+  Future<void> _loadDepartmentsForInstitution(String institution) async {
+    setState(() {
+      _isLoading = true;
+    });
+    
+    try {
+      final departments = await _teacherService.getDepartmentsByInstitution(institution);
+      
+      setState(() {
+        _filteredDepartments = departments;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading departments for institution: $e');
+      setState(() {
+        _filteredDepartments = [];
         _isLoading = false;
       });
     }
@@ -146,11 +170,11 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
       });
     }
   }
-
   void _resetFilters() {
     setState(() {
       _selectedDepartment = null;
       _selectedInstitution = null;
+      _filteredDepartments = _availableDepartments;
       _minRating = 0.0;
       _selectedTags.clear();
       _sortBy = 'rating';
@@ -271,8 +295,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
            _sortBy != 'rating' ||
            !_sortDescending;
   }
-  
-  Widget _buildFilterSection() {
+    Widget _buildFilterSection() {
     // Calculate a safe height that accounts for the app bar and some padding
     final screenHeight = MediaQuery.of(context).size.height;
     final safeHeight = screenHeight * 0.65; // Limit to 65% of screen height to avoid overflow
@@ -289,59 +312,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min, // Take minimum required space
           children: [
-          // Department dropdown
-          const Text(
-            'Department',
-            style: TextStyle(
-              fontFamily: 'Manrope',
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-              color: darkTextColor,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String?>(
-                value: _selectedDepartment,
-                hint: const Text('Select Department'),
-                isExpanded: true,
-                icon: const Icon(Icons.keyboard_arrow_down),
-                style: const TextStyle(
-                  fontFamily: 'Manrope',
-                  fontSize: 14,
-                  color: darkTextColor,
-                ),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedDepartment = newValue;
-                  });
-                  _performSearch();
-                },
-                items: [
-                  const DropdownMenuItem<String?>(
-                    value: null,
-                    child: Text('All Departments'),
-                  ),
-                  ..._availableDepartments.map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                ],
-              ),
-            ),
-          ),
-          
-          const SizedBox(height: 16),
-          
-          // Institution dropdown
+          // Institution dropdown (moved before department)
           const Text(
             'Institution/University',
             style: TextStyle(
@@ -368,10 +339,19 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
                   fontFamily: 'Manrope',
                   fontSize: 14,
                   color: darkTextColor,
-                ),
-                onChanged: (String? newValue) {
+                ),                onChanged: (String? newValue) {
                   setState(() {
                     _selectedInstitution = newValue;
+                    // Reset department when institution changes
+                    _selectedDepartment = null;
+                    
+                    // Load departments for this institution if selected
+                    if (newValue != null) {
+                      _loadDepartmentsForInstitution(newValue);
+                    } else {
+                      // If no institution selected, show all departments
+                      _filteredDepartments = _availableDepartments;
+                    }
                   });
                   _performSearch();
                 },
@@ -387,6 +367,64 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
                     );
                   }).toList(),
                 ],
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Department dropdown (now after institution)
+          const Text(
+            'Department',
+            style: TextStyle(
+              fontFamily: 'Manrope',
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+              color: darkTextColor,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String?>(
+                value: _selectedDepartment,
+                hint: Text(_selectedInstitution == null 
+                  ? 'Select Institution First' 
+                  : 'Select Department'),
+                isExpanded: true,
+                icon: const Icon(Icons.keyboard_arrow_down),
+                style: const TextStyle(
+                  fontFamily: 'Manrope',
+                  fontSize: 14,
+                  color: darkTextColor,
+                ),
+                onChanged: _selectedInstitution == null 
+                  ? null // Disable if no institution is selected
+                  : (String? newValue) {
+                      setState(() {
+                        _selectedDepartment = newValue;
+                      });
+                      _performSearch();
+                    },                items: _selectedInstitution == null
+                  ? null  // No items if institution not selected
+                  : [
+                      const DropdownMenuItem<String?>(
+                        value: null,
+                        child: Text('All Departments'),
+                      ),
+                      ..._filteredDepartments
+                        .map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                    ],
               ),
             ),
           ),

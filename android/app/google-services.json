@@ -1,37 +1,46 @@
 {
   "project_info": {
-    "project_number": "425867193513",
-    "project_id": "ratemyustaad2",
-    "storage_bucket": "ratemyustaad2.firebasestorage.app"
+    "project_number": "128410338756",
+    "firebase_url": "https://rate-my-ustaad-default-rtdb.firebaseio.com",
+    "project_id": "rate-my-ustaad",
+    "storage_bucket": "rate-my-ustaad.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:425867193513:android:8f63b025bae903bf66cdb8",
+        "mobilesdk_app_id": "1:128410338756:android:6e1ffc527687a0e61b9091",
         "android_client_info": {
           "package_name": "com.example.ratemyustaad"
         }
       },
       "oauth_client": [
         {
-          "client_id": "425867193513-l0ttgvop665trh3l61ra3in2god4asgr.apps.googleusercontent.com",
+          "client_id": "128410338756-inh8ei73e6oo171q0avttrtk5hjvomjk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.ratemyustaad",
+            "certificate_hash": "90671dc7bd6f8c5c435aa241a6dd054ee45a1555"
+          }
+        },
+        {
+          "client_id": "128410338756-99ea9lttdc55bqvglb42eic9fjj6qol1.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyA_7d1Yhr-HSKOTUUPQ5P_xMRGqWoc-19g"
+          "current_key": "AIzaSyDMfrz0BPgbFVx_zI6fESlv6bGxxhlSjp8"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "425867193513-l0ttgvop665trh3l61ra3in2god4asgr.apps.googleusercontent.com",
+              "client_id": "128410338756-99ea9lttdc55bqvglb42eic9fjj6qol1.apps.googleusercontent.com",
               "client_type": 3
             },
             {
-              "client_id": "425867193513-pe25gp5np69hpuq7ahmu8lm4gpp2a1uv.apps.googleusercontent.com",
+              "client_id": "128410338756-qfrqg4lb4ta1eh0594jamtj0vhe61p7c.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
                 "bundle_id": "com.example.ratemyustaad"

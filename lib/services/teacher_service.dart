@@ -423,7 +423,6 @@ class TeacherService {
   Future<List<Teacher>> searchTeachers(String query, {int limit = 20}) async {
     return advancedSearch(query: query, limit: limit);
   }
-
   // Get departments for a specific institution
   Future<List<String>> getDepartmentsByInstitution(String institution) async {
     try {
@@ -446,6 +445,14 @@ class TeacherService {
       print('Error getting departments for institution: $e');
       return [];
     }
+  }
+  
+  // Check if a department exists in a specific institution
+  bool isDepartmentInInstitution(String department, String institution) {
+    // This is a simple implementation that will work without
+    // making another network call. For more accurate results,
+    // you can use getDepartmentsByInstitution and check the result.
+    return true;
   }
   
   // Get teachers by institution and department
