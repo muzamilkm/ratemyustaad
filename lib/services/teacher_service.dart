@@ -423,4 +423,49 @@ class TeacherService {
   Future<List<Teacher>> searchTeachers(String query, {int limit = 20}) async {
     return advancedSearch(query: query, limit: limit);
   }
+
+  // Get departments for a specific institution
+  Future<List<String>> getDepartmentsByInstitution(String institution) async {
+    try {
+      final querySnapshot = await _teachersCollection
+          .where('institution', isEqualTo: institution)
+          .get();
+      
+      // Extract departments and remove duplicates using a Set
+      final departments = querySnapshot.docs
+          .map((doc) => (doc.data() as Map<String, dynamic>)['department'] as String)
+          .where((dept) => dept.isNotEmpty)
+          .toSet()
+          .toList();
+      
+      // Sort alphabetically
+      departments.sort();
+      
+      return departments;
+    } catch (e) {
+      print('Error getting departments for institution: $e');
+      return [];
+    }
+  }
+  
+  // Get teachers by institution and department
+  Future<List<Teacher>> getTeachersByInstitutionAndDepartment(
+    String institution,
+    String department,
+  ) async {
+    try {
+      final querySnapshot = await _teachersCollection
+          .where('institution', isEqualTo: institution)
+          .where('department', isEqualTo: department)
+          .orderBy('name')
+          .get();
+      
+      return querySnapshot.docs
+          .map((doc) => Teacher.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+          .toList();
+    } catch (e) {
+      print('Error getting teachers by institution and department: $e');
+      return [];
+    }
+  }
 }

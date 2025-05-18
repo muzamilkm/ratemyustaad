@@ -124,7 +124,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
         institution: _selectedInstitution,
         minRating: _minRating > 0 ? _minRating : null,
         tags: _selectedTags.isNotEmpty ? _selectedTags : null,
-        sortBy: _sortBy,
+        sortBy: _sortOptions.contains(_sortBy) ? _sortBy : 'rating',
         descending: _sortDescending,
       );
       
@@ -251,7 +251,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
           // Filter section - only visible when _showFilters is true
           if (_showFilters) _buildFilterSection(),
           
-          // Active filters chips
+          // Active filters chips - with horizontal scrolling to prevent overflow
           if (_hasActiveFilters()) _buildActiveFiltersSection(),
           
           // Results
@@ -262,7 +262,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
       ),
     );
   }
-
+  
   bool _hasActiveFilters() {
     return _selectedDepartment != null || 
            _selectedInstitution != null ||
@@ -275,7 +275,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
   Widget _buildFilterSection() {
     // Calculate a safe height that accounts for the app bar and some padding
     final screenHeight = MediaQuery.of(context).size.height;
-    final safeHeight = screenHeight * 0.65; // Limit to 65% of screen height to avoid overflow
+    final safeHeight = screenHeight * 0.6; // Reduce to 60% to avoid overflow
     
     return Container(
       color: Colors.white,
@@ -289,7 +289,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min, // Take minimum required space
           children: [
-          // Department dropdown
+          // Department dropdown - Disabled when no institution is selected
           const Text(
             'Department',
             style: TextStyle(
@@ -304,12 +304,18 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey.shade300),
               borderRadius: BorderRadius.circular(8),
+              // Add light grey background when disabled
+              color: _selectedInstitution == null ? Colors.grey.shade100 : Colors.white,
             ),
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String?>(
                 value: _selectedDepartment,
-                hint: const Text('Select Department'),
+                hint: Text(
+                  _selectedInstitution == null 
+                  ? 'Select an institution first' 
+                  : 'Select Department'
+                ),
                 isExpanded: true,
                 icon: const Icon(Icons.keyboard_arrow_down),
                 style: const TextStyle(
@@ -317,12 +323,15 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
                   fontSize: 14,
                   color: darkTextColor,
                 ),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedDepartment = newValue;
-                  });
-                  _performSearch();
-                },
+                // Disable dropdown if no institution is selected
+                onChanged: _selectedInstitution == null 
+                  ? null 
+                  : (String? newValue) {
+                    setState(() {
+                      _selectedDepartment = newValue;
+                    });
+                    _performSearch();
+                  },
                 items: [
                   const DropdownMenuItem<String?>(
                     value: null,
@@ -337,8 +346,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
                 ],
               ),
             ),
-          ),
-          
+          ),          
           const SizedBox(height: 16),
           
           // Institution dropdown
@@ -372,6 +380,8 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
                 onChanged: (String? newValue) {
                   setState(() {
                     _selectedInstitution = newValue;
+                    // Reset department when institution changes
+                    _selectedDepartment = null;
                   });
                   _performSearch();
                 },
@@ -603,13 +613,17 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
       ),
     );
   }
-
+  
   Widget _buildActiveFiltersSection() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       color: Colors.white,
+      constraints: BoxConstraints(
+        maxHeight: 100, // Reduced from 120 to prevent overflow by 34 pixels
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min, // Take minimum required space
         children: [
           Row(
             children: [
@@ -643,107 +657,127 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
             ],
           ),
           const SizedBox(height: 4),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              // Department filter chip
-              if (_selectedDepartment != null)
-                Chip(
-                  label: Text('Department: $_selectedDepartment'),
-                  backgroundColor: primaryColor.withOpacity(0.1),
-                  labelStyle: const TextStyle(
-                    fontFamily: 'Manrope',
-                    fontSize: 12,
-                    color: primaryColor,
-                  ),
-                  deleteIcon: const Icon(Icons.close, size: 14, color: primaryColor),
-                  onDeleted: () {
-                    setState(() {
-                      _selectedDepartment = null;
-                    });
-                    _performSearch();
-                  },
-                ),
-              
-              // Institution filter chip
-              if (_selectedInstitution != null)
-                Chip(
-                  label: Text('Institution: $_selectedInstitution'),
-                  backgroundColor: primaryColor.withOpacity(0.1),
-                  labelStyle: const TextStyle(
-                    fontFamily: 'Manrope',
-                    fontSize: 12,
-                    color: primaryColor,
-                  ),
-                  deleteIcon: const Icon(Icons.close, size: 14, color: primaryColor),
-                  onDeleted: () {
-                    setState(() {
-                      _selectedInstitution = null;
-                    });
-                    _performSearch();
-                  },
-                ),
-              
-              // Min rating filter chip
-              if (_minRating > 0)
-                Chip(
-                  label: Text('Min Rating: ${_minRating.toStringAsFixed(1)}★'),
-                  backgroundColor: primaryColor.withOpacity(0.1),
-                  labelStyle: const TextStyle(
-                    fontFamily: 'Manrope',
-                    fontSize: 12,
-                    color: primaryColor,
-                  ),
-                  deleteIcon: const Icon(Icons.close, size: 14, color: primaryColor),
-                  onDeleted: () {
-                    setState(() {
-                      _minRating = 0;
-                    });
-                    _performSearch();
-                  },
-                ),
-              
-              // Sort filter chip
-              if (_sortBy != 'rating' || !_sortDescending)
-                Chip(
-                  label: Text(
-                    'Sort: ${_sortLabels[_sortBy]} ${_sortDescending ? '↓' : '↑'}',
-                  ),
-                  backgroundColor: primaryColor.withOpacity(0.1),
-                  labelStyle: const TextStyle(
-                    fontFamily: 'Manrope',
-                    fontSize: 12,
-                    color: primaryColor,
-                  ),
-                  deleteIcon: const Icon(Icons.close, size: 14, color: primaryColor),
-                  onDeleted: () {
-                    setState(() {
-                      _sortBy = 'rating';
-                      _sortDescending = true;
-                    });
-                    _performSearch();
-                  },
-                ),
-              
-              // Tag filter chips
-              ..._selectedTags.map((tag) => Chip(
-                label: Text(tag),
-                backgroundColor: primaryColor.withOpacity(0.1),
-                labelStyle: const TextStyle(
-                  fontFamily: 'Manrope',
-                  fontSize: 12,
-                  color: primaryColor,
-                ),
-                deleteIcon: const Icon(Icons.close, size: 14, color: primaryColor),
-                onDeleted: () {
-                  setState(() {
-                    _selectedTags.remove(tag);
-                  });
-                  _performSearch();
-                },
-              )),
-            ],
+          Flexible(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  // Department filter chip
+                  if (_selectedDepartment != null)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Chip(
+                        label: Text('Department: $_selectedDepartment'),
+                        backgroundColor: primaryColor.withOpacity(0.1),
+                        labelStyle: const TextStyle(
+                          fontFamily: 'Manrope',
+                          fontSize: 12,
+                          color: primaryColor,
+                        ),
+                        deleteIcon: const Icon(Icons.close, size: 14, color: primaryColor),
+                        onDeleted: () {
+                          setState(() {
+                            _selectedDepartment = null;
+                          });
+                          _performSearch();
+                        },
+                      ),
+                    ),
+                  
+                  // Institution filter chip
+                  if (_selectedInstitution != null)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Chip(
+                        label: Text('Institution: $_selectedInstitution'),
+                        backgroundColor: primaryColor.withOpacity(0.1),
+                        labelStyle: const TextStyle(
+                          fontFamily: 'Manrope',
+                          fontSize: 12,
+                          color: primaryColor,
+                        ),
+                        deleteIcon: const Icon(Icons.close, size: 14, color: primaryColor),
+                        onDeleted: () {
+                          setState(() {
+                            _selectedInstitution = null;
+                            // Also clear department when institution is cleared
+                            _selectedDepartment = null;
+                          });
+                          _performSearch();
+                        },
+                      ),
+                    ),
+                  
+                  // Min rating filter chip
+                  if (_minRating > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Chip(
+                        label: Text('Min Rating: ${_minRating.toStringAsFixed(1)}★'),
+                        backgroundColor: primaryColor.withOpacity(0.1),
+                        labelStyle: const TextStyle(
+                          fontFamily: 'Manrope',
+                          fontSize: 12,
+                          color: primaryColor,
+                        ),
+                        deleteIcon: const Icon(Icons.close, size: 14, color: primaryColor),
+                        onDeleted: () {
+                          setState(() {
+                            _minRating = 0;
+                          });
+                          _performSearch();
+                        },
+                      ),
+                    ),
+                  
+                  // Sort filter chip
+                  if (_sortBy != 'rating' || !_sortDescending)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Chip(
+                        label: Text(
+                          'Sort: ${_sortLabels[_sortBy] ?? _sortBy} ${_sortDescending ? '↓' : '↑'}',
+                        ),
+                        backgroundColor: primaryColor.withOpacity(0.1),
+                        labelStyle: const TextStyle(
+                          fontFamily: 'Manrope',
+                          fontSize: 12,
+                          color: primaryColor,
+                        ),
+                        deleteIcon: const Icon(Icons.close, size: 14, color: primaryColor),
+                        onDeleted: () {
+                          setState(() {
+                            _sortBy = 'rating';
+                            _sortDescending = true;
+                          });
+                          _performSearch();
+                        },
+                      ),
+                    ),
+                  
+                  // Tag filter chips
+                  ..._selectedTags.map((tag) => Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: Chip(
+                      label: Text(tag),
+                      backgroundColor: primaryColor.withOpacity(0.1),
+                      labelStyle: const TextStyle(
+                        fontFamily: 'Manrope',
+                        fontSize: 12,
+                        color: primaryColor,
+                      ),
+                      deleteIcon: const Icon(Icons.close, size: 14, color: primaryColor),
+                      onDeleted: () {
+                        setState(() {
+                          _selectedTags.remove(tag);
+                        });
+                        _performSearch();
+                      },
+                    ),
+                  )),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -759,6 +793,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
     
     if (_searchQuery.isEmpty && 
         _selectedDepartment == null && 
+        _selectedInstitution == null &&
         _minRating == 0 && 
         _selectedTags.isEmpty) {
       return _buildInitialState();

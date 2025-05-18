@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../services/user_service.dart';
-import '../../services/auth_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final Map<String, dynamic>? userData;
@@ -17,13 +16,11 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final UserService _userService = UserService();
-  final AuthService _authService = AuthService();
   
   late TextEditingController _firstNameController;
   late TextEditingController _lastNameController;
   
   bool _isSaving = false;
-  bool _isGoogleUser = false;
   
   @override
   void initState() {
@@ -36,8 +33,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _lastNameController = TextEditingController(
       text: widget.userData?['lastName'] ?? '',
     );
-    
-    _isGoogleUser = _authService.isUserSignedInWithGoogle();
   }
   
   @override
@@ -115,52 +110,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            
-            // Google account notice
-            if (_isGoogleUser) ...[
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(
-                      Icons.info_outline,
-                      color: Colors.blue,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Google Account',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue[800],
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'You are signed in with Google. Profile changes here will only affect how your name appears in this app. To change your Google profile information, please visit your Google account settings.',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[800],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
             
             // First Name
             TextFormField(
