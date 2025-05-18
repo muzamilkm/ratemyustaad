@@ -67,8 +67,10 @@ class DefaultFirebaseOptions {
     projectId: 'rate-my-ustaad',
     databaseURL: 'https://rate-my-ustaad-default-rtdb.firebaseio.com',
     storageBucket: 'rate-my-ustaad.firebasestorage.app',
-    androidClientId: '128410338756-inh8ei73e6oo171q0avttrtk5hjvomjk.apps.googleusercontent.com',
-    iosClientId: '128410338756-qfrqg4lb4ta1eh0594jamtj0vhe61p7c.apps.googleusercontent.com',
+    androidClientId:
+        '128410338756-inh8ei73e6oo171q0avttrtk5hjvomjk.apps.googleusercontent.com',
+    iosClientId:
+        '128410338756-qfrqg4lb4ta1eh0594jamtj0vhe61p7c.apps.googleusercontent.com',
     iosBundleId: 'com.example.ratemyustaad',
   );
 
@@ -79,8 +81,10 @@ class DefaultFirebaseOptions {
     projectId: 'rate-my-ustaad',
     databaseURL: 'https://rate-my-ustaad-default-rtdb.firebaseio.com',
     storageBucket: 'rate-my-ustaad.firebasestorage.app',
-    androidClientId: '128410338756-inh8ei73e6oo171q0avttrtk5hjvomjk.apps.googleusercontent.com',
-    iosClientId: '128410338756-qfrqg4lb4ta1eh0594jamtj0vhe61p7c.apps.googleusercontent.com',
+    androidClientId:
+        '128410338756-inh8ei73e6oo171q0avttrtk5hjvomjk.apps.googleusercontent.com',
+    iosClientId:
+        '128410338756-qfrqg4lb4ta1eh0594jamtj0vhe61p7c.apps.googleusercontent.com',
     iosBundleId: 'com.example.ratemyustaad',
   );
 
@@ -94,5 +98,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'rate-my-ustaad.firebasestorage.app',
     measurementId: 'G-MPHJD7GCHX',
   );
-
 }
