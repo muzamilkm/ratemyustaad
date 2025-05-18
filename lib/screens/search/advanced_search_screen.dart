@@ -1,4 +1,3 @@
-// This file contains a fixed version of the AdvancedSearchScreen
 import 'package:flutter/material.dart';
 import '../../models/teacher.dart';
 import '../../services/teacher_service.dart';
@@ -295,10 +294,12 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
            _sortBy != 'rating' ||
            !_sortDescending;
   }
-    Widget _buildFilterSection() {
+  
+  Widget _buildFilterSection() {
     // Calculate a safe height that accounts for the app bar and some padding
     final screenHeight = MediaQuery.of(context).size.height;
-    final safeHeight = screenHeight * 0.65; // Limit to 65% of screen height to avoid overflow
+    // Reduce maximum height to prevent overflow
+    final safeHeight = screenHeight * 0.5; // Reduced to 50% to prevent overflow
     
     return Container(
       color: Colors.white,
@@ -339,7 +340,8 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
                   fontFamily: 'Manrope',
                   fontSize: 14,
                   color: darkTextColor,
-                ),                onChanged: (String? newValue) {
+                ),
+                onChanged: (String? newValue) {
                   setState(() {
                     _selectedInstitution = newValue;
                     // Reset department when institution changes
@@ -410,7 +412,8 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
                         _selectedDepartment = newValue;
                       });
                       _performSearch();
-                    },                items: _selectedInstitution == null
+                    },
+                items: _selectedInstitution == null
                   ? null  // No items if institution not selected
                   : [
                       const DropdownMenuItem<String?>(
@@ -797,6 +800,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
     
     if (_searchQuery.isEmpty && 
         _selectedDepartment == null && 
+        _selectedInstitution == null &&
         _minRating == 0 && 
         _selectedTags.isEmpty) {
       return _buildInitialState();
@@ -831,127 +835,160 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
   }
   
   Widget _buildInitialState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.search,
-            size: 80,
-            color: Colors.grey[300],
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Search for Teachers',
-            style: TextStyle(
-              fontFamily: 'Manrope',
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: darkTextColor,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight,
             ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Use the search bar or filters to find teachers',
-            style: TextStyle(
-              fontFamily: 'Manrope',
-              fontSize: 14,
-              color: hintTextColor,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () {
-              setState(() {
-                _showFilters = true;
-              });
-            },
-            icon: const Icon(Icons.filter_list, color: Colors.white),
-            label: const Text(
-              'Show Filters',
-              style: TextStyle(
-                fontFamily: 'Manrope',
-                color: Colors.white,
+            child: IntrinsicHeight(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 20),
+                    Icon(
+                      Icons.search,
+                      size: 80,
+                      color: Colors.grey[300],
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Search for Teachers',
+                      style: TextStyle(
+                        fontFamily: 'Manrope',
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: darkTextColor,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        'Use the search bar or filters to find teachers',
+                        style: TextStyle(
+                          fontFamily: 'Manrope',
+                          fontSize: 14,
+                          color: hintTextColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _showFilters = true;
+                        });
+                      },
+                      icon: const Icon(Icons.filter_list, color: Colors.white),
+                      label: const Text(
+                        'Show Filters',
+                        style: TextStyle(
+                          fontFamily: 'Manrope',
+                          color: Colors.white,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryColor,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
   
   Widget _buildNoResults() {
-    return SingleChildScrollView(
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.search_off,
-                size: 80,
-                color: Colors.grey[300],
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'No results found',
-                style: TextStyle(
-                  fontFamily: 'Manrope',
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: darkTextColor,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _selectedDepartment != null || _selectedInstitution != null || _minRating > 0 || _selectedTags.isNotEmpty
-                    ? 'Try adjusting your filters for more results'
-                    : 'No teachers found matching "$_searchQuery"',
-                style: const TextStyle(
-                  fontFamily: 'Manrope',
-                  fontSize: 14,
-                  color: hintTextColor,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                onPressed: _resetFilters,
-                icon: const Icon(Icons.refresh, color: Colors.white),
-                label: const Text(
-                  'Reset Filters',
-                  style: TextStyle(
-                    fontFamily: 'Manrope',
-                    color: Colors.white,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight,
+            ),
+            child: IntrinsicHeight(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 16.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.search_off,
+                        size: 80,
+                        color: Colors.grey[300],
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'No results found',
+                        style: TextStyle(
+                          fontFamily: 'Manrope',
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: darkTextColor,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _selectedDepartment != null || _selectedInstitution != null || _minRating > 0 || _selectedTags.isNotEmpty
+                            ? 'Try adjusting your filters for more results'
+                            : 'No teachers found matching "$_searchQuery"',
+                        style: const TextStyle(
+                          fontFamily: 'Manrope',
+                          fontSize: 14,
+                          color: hintTextColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: _resetFilters,
+                        icon: const Icon(Icons.refresh, color: Colors.white),
+                        label: const Text(
+                          'Reset Filters',
+                          style: TextStyle(
+                            fontFamily: 'Manrope',
+                            color: Colors.white,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryColor,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
