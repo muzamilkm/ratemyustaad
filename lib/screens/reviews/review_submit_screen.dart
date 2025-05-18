@@ -137,19 +137,22 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
       _showError('Failed to load institutions. Please try again.');
     }
   }
-  
-  // Load departments for a specific institution
+    // Load departments for a specific institution
   Future<void> _loadDepartments(String institution) async {
     setState(() {
       _isLoadingDepartments = true;
       _availableDepartments = [];
-      _selectedDepartment = null;
-      _departmentController.text = '';
       
-      // Reset teacher-related fields too since department is changing
-      _availableTeachers = [];
-      _selectedTeacher = null;
-      _teacherNameController.text = '';
+      // Only reset these if we don't have a pre-selected teacher
+      if (widget.teacher == null) {
+        _selectedDepartment = null;
+        _departmentController.text = '';
+        
+        // Reset teacher-related fields too since department is changing
+        _availableTeachers = [];
+        _selectedTeacher = null;
+        _teacherNameController.text = '';
+      }
     });
     
     try {
@@ -175,14 +178,17 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
       _showError('Failed to load departments. Please try again.');
     }
   }
-  
-  // Load teachers for a specific institution and department
+    // Load teachers for a specific institution and department
   Future<void> _loadTeachers(String institution, String department) async {
     setState(() {
       _isLoadingTeachers = true;
       _availableTeachers = [];
-      _selectedTeacher = null;
-      _teacherNameController.text = '';
+      
+      // Only reset teacher if not coming from teacher detail screen
+      if (widget.teacher == null) {
+        _selectedTeacher = null;
+        _teacherNameController.text = '';
+      }
     });
     
     try {
@@ -462,8 +468,7 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
-                    // 1. University/Institution dropdown (first)
+                      // 1. University/Institution dropdown (first)
                     _buildSearchableDropdown<String>(
                       label: "University/Institution",
                       hint: "Select a university/institution",
@@ -473,13 +478,12 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
                       getLabel: (item) => item,
                       searchController: _institutionSearchController,
                       onItemSelected: _handleInstitutionSelected,
-                      enabled: widget.teacher == null,
+                      enabled: true,
                       emptyMessage: "No institutions found. Please try a different search term or add a new institution.",
                     ),
                     
                     const SizedBox(height: 12),
-                    
-                    // 2. Department dropdown (second)
+                      // 2. Department dropdown (second)
                     _buildSearchableDropdown<String>(
                       label: "Department",
                       hint: "Select a department",
@@ -489,15 +493,14 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
                       getLabel: (item) => item,
                       searchController: _departmentSearchController,
                       onItemSelected: _handleDepartmentSelected,
-                      enabled: _selectedInstitution != null && widget.teacher == null,
+                      enabled: _selectedInstitution != null,
                       emptyMessage: _selectedInstitution == null 
                           ? "Please select an institution first" 
                           : "No departments found for this institution.",
                     ),
                     
                     const SizedBox(height: 12),
-                    
-                    // 3. Teacher Name dropdown (third)
+                      // 3. Teacher Name dropdown (third)
                     _buildSearchableDropdown<Map<String, dynamic>>(
                       label: "Teacher Name",
                       hint: "Select a teacher",
@@ -510,7 +513,7 @@ class _ReviewSubmitScreenState extends State<ReviewSubmitScreen> {
                       getLabel: (item) => item['name'] as String,
                       searchController: _teacherSearchController,
                       onItemSelected: _handleTeacherSelected,
-                      enabled: _selectedDepartment != null && widget.teacher == null,
+                      enabled: _selectedDepartment != null,
                       emptyMessage: _selectedDepartment == null 
                           ? "Please select a department first" 
                           : "No teachers found for this department and institution.",
