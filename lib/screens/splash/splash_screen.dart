@@ -40,6 +40,20 @@ class _SplashScreenState extends State<SplashScreen> {
           await authProvider.signInWithEmail(email, password);
         }
       }
+      
+      // Check if the current user is banned
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      if (authProvider.isAuthenticated) {
+        final isBanned = await authProvider.isUserBanned();
+        if (isBanned) {
+          // Sign out and clear credentials
+          await authProvider.signOut();
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool('rememberMe', false);
+          await prefs.remove('email');
+          await prefs.remove('password');
+        }
+      }
     } catch (e) {
       print('Error during auto-login: $e');
     } finally {
